@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference · Tree &amp; Graph Traversal Templates (Java)</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body class="wide">
+  <nav class="topnav">
+    <a class="home" href="../index.html">Course home</a>
+    <a href="0001-java-collections-cheatsheet.html">Java Collections cheat sheet &rarr;</a>
+  </nav>
+  <p class="eyebrow">Reference</p>
+  <h1>Tree &amp; Graph Traversal Templates</h1>
+  <p class="lede">The handful of skeletons that solve most tree (and many graph) problems. Memorise these; vary only the per-node work.</p>
+
+  <h2>Node definitions</h2>
+<pre><code>class TreeNode { int val; TreeNode left, right; }
+// Graph: Map&lt;Integer, List&lt;Integer&gt;&gt; adj;  or  int[][] grid;</code></pre>
+
+  <h2>DFS — recursive (the default)</h2>
+<pre><code>void dfs(TreeNode node) {
+    if (node == null) return;        // base case
+    // preorder work here
+    dfs(node.left);
+    // inorder work here  (BST → sorted order)
+    dfs(node.right);
+    // postorder work here (children done → bottom-up aggregates)
+}</code></pre>
+  <p>Choose the slot by what you need: <strong>preorder</strong> for top-down (pass info down via
+  parameters), <strong>postorder</strong> for bottom-up (combine children's returns — heights,
+  sums, "is balanced"). <strong>Inorder of a BST yields sorted values.</strong></p>
+
+  <h3>Postorder aggregation (the workhorse for "compute a property")</h3>
+<pre><code>int height(TreeNode node) {
+    if (node == null) return 0;
+    int l = height(node.left), r = height(node.right);
+    return 1 + Math.max(l, r);       // combine children → my answer
+}</code></pre>
+  <p>Most "max path", "diameter", "is balanced", "is valid BST" problems are postorder: return an
+  aggregate, and keep a separate field/array for the global best.</p>
+
+  <h2>BFS — level order (queue)</h2>
+<pre><code>List&lt;List&lt;Integer&gt;&gt; levelOrder(TreeNode root) {
+    List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+    if (root == null) return res;
+    Queue&lt;TreeNode&gt; q = new LinkedList&lt;&gt;();
+    q.offer(root);
+    while (!q.isEmpty()) {
+        int n = q.size();             // freeze this level's width
+        List&lt;Integer&gt; level = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; n; i++) {
+            TreeNode cur = q.poll();
+            level.add(cur.val);
+            if (cur.left  != null) q.offer(cur.left);
+            if (cur.right != null) q.offer(cur.right);
+        }
+        res.add(level);
+    }
+    return res;
+}</code></pre>
+  <p>The <code>int n = q.size()</code> snapshot is what separates levels. Use BFS for
+  shortest-path-in-unweighted, level-by-level work, and "right side view" type problems.</p>
+
+  <h2>Iterative DFS (when recursion depth is a risk)</h2>
+<pre><code>Deque&lt;TreeNode&gt; st = new ArrayDeque&lt;&gt;();
+st.push(root);
+while (!st.isEmpty()) {
+    TreeNode cur = st.pop();
+    if (cur == null) continue;
+    // visit cur
+    st.push(cur.right);   // push right first so left is processed first
+    st.push(cur.left);
+}</code></pre>
+
+  <h2>Graph DFS / BFS (adjacency list)</h2>
+<pre><code>// DFS with visited set
+void dfs(int u, Map&lt;Integer,List&lt;Integer&gt;&gt; adj, Set&lt;Integer&gt; seen) {
+    if (!seen.add(u)) return;        // add returns false if already present
+    for (int v : adj.getOrDefault(u, List.of())) dfs(v, adj, seen);
+}
+
+// BFS shortest path (unweighted)
+int bfs(int src, int dst, Map&lt;Integer,List&lt;Integer&gt;&gt; adj) {
+    Queue&lt;Integer&gt; q = new LinkedList&lt;&gt;(); q.offer(src);
+    Set&lt;Integer&gt; seen = new HashSet&lt;&gt;(); seen.add(src);
+    int dist = 0;
+    while (!q.isEmpty()) {
+        int n = q.size();
+        for (int i = 0; i &lt; n; i++) {
+            int u = q.poll();
+            if (u == dst) return dist;
+            for (int v : adj.getOrDefault(u, List.of()))
+                if (seen.add(v)) q.offer(v);
+        }
+        dist++;
+    }
+    return -1;
+}</code></pre>
+
+  <h2>Grid traversal (implicit graph)</h2>
+<pre><code>int[][] DIRS = {{1,0},{-1,0},{0,1},{0,-1}};
+void dfs(char[][] g, int r, int c) {
+    if (r &lt; 0 || c &lt; 0 || r &gt;= g.length || c &gt;= g[0].length || g[r][c] != '1') return;
+    g[r][c] = '0';                   // mark visited in place
+    for (int[] d : DIRS) dfs(g, r + d[0], c + d[1]);
+}</code></pre>
+
+  <h2>Complexity quick table</h2>
+  <table>
+    <tr><th>Traversal</th><th>Time</th><th>Space</th></tr>
+    <tr><td>Tree DFS / BFS</td><td>O(n)</td><td>O(h) / O(width)</td></tr>
+    <tr><td>Graph DFS / BFS (adj list)</td><td>O(V + E)</td><td>O(V)</td></tr>
+    <tr><td>Grid DFS / BFS</td><td>O(rows·cols)</td><td>O(rows·cols)</td></tr>
+  </table>
+
+  <div class="panel">
+    <h3>Source</h3>
+    <p>▸ <a href="https://cp-algorithms.com/graph/depth-first-search.html">cp-algorithms — DFS</a>
+    and <a href="https://cp-algorithms.com/graph/breadth-first-search.html">BFS</a>. Used by
+    Lessons <a href="../lessons/0019-trees.html">0019</a> onward.</p>
+  </div>
+
+  <footer>
+    <strong>Reference</strong> · DSA for L6/L7 Interviews ·
+    <a href="../index.html">Course home</a> ·
+    <a href="0001-java-collections-cheatsheet.html">Java Collections cheat sheet</a>
+  </footer>
+</body>
+</html>

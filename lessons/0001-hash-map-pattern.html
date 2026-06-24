@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0001 · The Hash Map Pattern — Trading Space for Time</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../index.html">Course home</a>
+    <a href="0002-hashing-more-problems.html">Next: More problems &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0001 · Arrays &amp; Hashing</p>
+  <h1>The Hash Map Pattern</h1>
+  <p class="lede">Trading space for time — the single highest-frequency idea in Google &amp; Meta coding rounds.</p>
+
+  <p>You're rusty, so let's start where the leverage is highest. The most common move
+  in interview coding is this: <em>a brute-force scan re-derives information it has
+  already seen.</em> A hash map remembers that information so each step becomes O(1).
+  Master this reflex and a large fraction of "mediums" collapse into a single pass.</p>
+
+  <div class="why">The Google bar isn't "did it pass" — it's "can you say <em>why</em> O(n) is
+  achievable and prove it." The Meta bar is "can you write it cleanly in 10 minutes."
+  This pattern trains both.</div>
+
+  <h2>The core idea</h2>
+  <p>Two questions a hash structure answers in ~O(1):</p>
+  <ul>
+    <li><strong>"Have I seen this before?"</strong> → <code>HashSet</code> (membership).</li>
+    <li><strong>"What value / count / index is associated with this key?"</strong> → <code>HashMap</code>.</li>
+  </ul>
+  <p>If your brute force has a nested loop where the inner loop searches for something,
+  ask: <em>could I have stored that something in a map on the way in?</em> Usually yes —
+  turning O(n²) into O(n) at the cost of O(n) memory.</p>
+
+  <div class="signal">
+    <strong>Pattern signals.</strong> Reach for hashing when you see:
+    <em>"find a pair / complement", "count occurrences", "group by some key",
+    "detect duplicates", "find the longest/shortest subarray with property X"</em>
+    (often prefix-sum + map). If the problem needs <em>sorted order</em> or <em>top-K</em>,
+    that's a different tool — note it and move on.
+  </div>
+
+  <p class="cx">Java idioms (frequencies, group-by, sets) live in your
+  <a href="../reference/0001-java-collections-cheatsheet.html">Collections Cheat Sheet →</a>
+  Keep it open while drilling.</p>
+
+  <h2>Check your model first</h2>
+  <p>Retrieval before practice — answer from memory, then click.</p>
+
+  <div class="quiz" id="quiz">
+    <!-- questions injected by JS so options can be shuffled -->
+  </div>
+
+  <h2>Now drill — three problems</h2>
+  <p>Try each yourself <em>before</em> opening the hint. Struggling to recall is what
+  builds retention; reading a solution you didn't fight for builds almost nothing.</p>
+
+  <h3>Drill 1 — warm-up <span class="lc">LeetCode 1 · Two Sum</span></h3>
+  <p>Given <code>int[] nums</code> and <code>int target</code>, return indices of the two
+  numbers that add to <code>target</code>. Exactly one solution; can't reuse an element.</p>
+  <details>
+    <summary>Hint</summary>
+    <p>As you walk the array, for each <code>x</code> you need to know whether
+    <code>target − x</code> appeared earlier — and at what index. Store value → index
+    in a map <em>as you go</em>, so the complement check is O(1). One pass is enough.</p>
+  </details>
+  <details>
+    <summary>Solution (Java)</summary>
+<pre><code>public int[] twoSum(int[] nums, int target) {
+    Map&lt;Integer,Integer&gt; seen = new HashMap&lt;&gt;(); // value -&gt; index
+    for (int i = 0; i &lt; nums.length; i++) {
+        int need = target - nums[i];
+        if (seen.containsKey(need)) {
+            return new int[]{ seen.get(need), i };
+        }
+        seen.put(nums[i], i);
+    }
+    return new int[]{-1, -1}; // unreachable per constraints
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(n). Insight: check the complement <em>before</em> inserting
+    the current element, so you never pair an element with itself.</p>
+  </details>
+
+  <h3>Drill 2 — core <span class="lc">LeetCode 49 · Group Anagrams</span></h3>
+  <p>Given <code>String[] strs</code>, group the anagrams together. Anagrams share the
+  same multiset of letters.</p>
+  <details>
+    <summary>Hint</summary>
+    <p>You need a <em>canonical key</em> that's identical for all anagrams. Sorting the
+    characters gives one (<code>"eat"→"aet"</code>). Map that key → list of originals
+    using <code>computeIfAbsent</code>. (Faster key: a length-26 count signature.)</p>
+  </details>
+  <details>
+    <summary>Solution (Java)</summary>
+<pre><code>public List&lt;List&lt;String&gt;&gt; groupAnagrams(String[] strs) {
+    Map&lt;String,List&lt;String&gt;&gt; groups = new HashMap&lt;&gt;();
+    for (String s : strs) {
+        char[] c = s.toCharArray();
+        Arrays.sort(c);
+        String key = new String(c);
+        groups.computeIfAbsent(key, k -&gt; new ArrayList&lt;&gt;()).add(s);
+    }
+    return new ArrayList&lt;&gt;(groups.values());
+}</code></pre>
+    <p class="cx">Time O(n·k log k) for n strings of length k (sorting each key) · Space O(n·k).
+    A count-array key drops it to O(n·k). Insight: hashing isn't just lookup — it's
+    <em>grouping by a derived key</em>.</p>
+  </details>
+
+  <h3>Drill 3 — stretch (Google/Meta favorite) <span class="lc">LeetCode 560 · Subarray Sum = K</span></h3>
+  <p>Given <code>int[] nums</code> and <code>int k</code>, count the contiguous subarrays
+  summing to <code>k</code>. Numbers can be negative, so a sliding window won't work.</p>
+  <details>
+    <summary>Hint</summary>
+    <p>Let <code>prefix[i]</code> = sum of the first <code>i</code> elements. A subarray
+    <code>(j, i]</code> sums to <code>k</code> exactly when
+    <code>prefix[i] − prefix[j] = k</code>, i.e. <code>prefix[j] = prefix[i] − k</code>.
+    So as you sweep, count how many earlier prefix sums equal <code>current − k</code>.
+    A map of <em>prefix-sum → how many times seen</em> answers that in O(1).</p>
+  </details>
+  <details>
+    <summary>Solution (Java)</summary>
+<pre><code>public int subarraySum(int[] nums, int k) {
+    Map&lt;Integer,Integer&gt; count = new HashMap&lt;&gt;();
+    count.put(0, 1);              // empty prefix: sum 0 seen once
+    int prefix = 0, ans = 0;
+    for (int x : nums) {
+        prefix += x;
+        ans += count.getOrDefault(prefix - k, 0);
+        count.merge(prefix, 1, Integer::sum);
+    }
+    return ans;
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(n). This is the <strong>prefix-sum + hash map</strong>
+    template — it recurs constantly. The <code>count.put(0,1)</code> seed handles subarrays
+    starting at index 0; forgetting it is the classic bug. Be ready to explain why the
+    negative-number case rules out two pointers.</p>
+  </details>
+
+  <h2>What you just trained</h2>
+  <p>Three faces of one pattern: <strong>lookup</strong> (Two Sum), <strong>grouping by
+  derived key</strong> (Group Anagrams), and <strong>prefix-sum counting</strong>
+  (Subarray Sum). In an interview, the trigger is the same each time: <em>"my brute
+  force keeps re-searching — can a map remember it instead?"</em></p>
+
+  <div class="panel">
+    <h3>Primary source (do this next)</h3>
+    <p>▸ Watch <a href="https://neetcode.io/courses/dsa-for-beginners/0">NeetCode — Arrays &amp; Hashing</a>
+    and solve the section's problems on <a href="https://leetcode.com/problem-list/arrays-hashing/">LeetCode</a>.
+    For the rigorous <em>why</em> behind prefix sums, see
+    <a href="https://cp-algorithms.com/data_structures/sqrt_decomposition.html">cp-algorithms</a>'
+    treatment of range-sum techniques.</p>
+  </div>
+
+  <div class="ask">
+    <strong>I'm your teacher — ask me anything.</strong> Stuck on a drill? Want me to
+    review your own solution, or explain a complexity step? Just say so. When you've done
+    these drills, go to <strong><a href="0002-hashing-more-problems.html">More Hashing
+    Problems</a></strong> for extra reps, then the <strong>interleaving</strong> set after
+    a short gap — that order is what makes it stick.
+  </div>
+
+  <footer>
+    <strong>Lesson 0001</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0002-hashing-more-problems.html">More Hashing Problems</a> →<br>
+    Reference: <a href="../reference/0001-java-collections-cheatsheet.html">Java Collections Cheat Sheet</a> ·
+    <a href="../index.html">Course home</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 3;
+const QUESTIONS = [
+  {
+    q: "1. Why does a HashMap turn an O(n²) pair-search into O(n)?",
+    options: [
+      {t:"Constant-time lookup of prior values", ok:true},
+      {t:"Keeps the array fully sorted always", ok:false},
+      {t:"Reduces the total memory used noticeably", ok:false},
+      {t:"Avoids using any extra space here", ok:false}
+    ],
+    good:"Right — you store what you've seen, so each complement check is O(1).",
+    bad:"Not quite. A map costs O(n) extra space; its win is O(1) lookup of earlier values."
+  },
+  {
+    q: "2. Two-pass-free (one-pass) HashMap Two Sum — complexity?",
+    options: [
+      {t:"O(n²) time, O(1) space", ok:false},
+      {t:"O(n) time, O(n) space", ok:true},
+      {t:"O(n log n) time, O(n) space", ok:false},
+      {t:"O(1) time, O(n) space", ok:false}
+    ],
+    good:"Correct — one linear pass, and the map can hold up to n entries.",
+    bad:"Re-check: one pass over n elements is O(n) time, and the map holds up to n keys → O(n) space."
+  },
+  {
+    q: "3. Which signal most strongly says 'reach for hashing'?",
+    options: [
+      {t:"Need to return things in order", ok:false},
+      {t:"Need to find the k largest", ok:false},
+      {t:"Need fast lookups or grouping", ok:true},
+      {t:"Need to process over a range", ok:false}
+    ],
+    good:"Yes — membership, counts, and group-by are the hashing tells.",
+    bad:"That points elsewhere (sorting / heap / sliding window). Hashing's tells are lookup, count, group-by."
+  }
+];
+</script>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

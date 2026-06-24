@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0004 · The Two-Pointers Pattern</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../index.html">Course home</a>
+    <a href="0003-interleaving-hashing.html">&larr; Interleaving</a>
+  </nav>
+  <p class="eyebrow">Lesson 0004 · Two Pointers</p>
+  <h1>The Two-Pointers Pattern</h1>
+  <p class="lede">Two indices, one array, O(1) extra space — the tool that beats hashing when the input is sorted or you must work in place.</p>
+
+  <p>In Lesson 0003 you spotted it: a pair-sum on a <em>sorted</em> array doesn't need a hash
+  map. Two pointers walking from the ends solve it in O(n) time and <strong>O(1) space</strong>.
+  That space win — and the ability to mutate in place — is why this pattern is everywhere in
+  Google/Meta rounds.</p>
+
+  <div class="why">The Staff-level move isn't just knowing two pointers — it's <em>articulating
+  the tradeoff</em>: "hashing is O(n) space; since this is sorted, two pointers gives the same
+  answer in O(1)." Stating that unprompted is what separates a hire from a strong-hire.</div>
+
+  <h2>The two families</h2>
+  <h3>1 · Converging (opposite ends)</h3>
+  <p>Start <code>lo = 0</code>, <code>hi = n−1</code>. Compare, then move the pointer that can
+  improve the answer. Works on <strong>sorted</strong> arrays and on symmetric scans
+  (palindromes). The comparison decides the move — that's the whole trick.</p>
+<pre><code>int lo = 0, hi = n - 1;
+while (lo &lt; hi) {
+    if (condition met)      return ...;
+    else if (sum too small) lo++;   // need a bigger value
+    else                    hi--;   // need a smaller value
+}</code></pre>
+
+  <h3>2 · Fast / slow (same direction)</h3>
+  <p>Two pointers moving the same way at different speeds, or one lagging to mark a write
+  position. Powers <em>in-place</em> work: dedup a sorted array, partition, remove elements,
+  and (with a 2× fast pointer) <em>cycle detection</em> in linked lists — a later module.</p>
+<pre><code>int slow = 0;                      // write position
+for (int fast = 0; fast &lt; n; fast++) {
+    if (keep(nums[fast])) nums[slow++] = nums[fast];
+}
+// slow = length of the kept prefix</code></pre>
+
+  <div class="signal">
+    <strong>Pattern signals.</strong> Reach for two pointers when you see: <em>"sorted array"</em>,
+    <em>"pair / triplet summing to X"</em>, <em>"palindrome"</em>, <em>"remove / dedup in place"</em>,
+    <em>"O(1) extra space required"</em>, or <em>"merge two sorted sequences"</em>. If the array
+    is <em>unsorted</em> and sorting would destroy needed information (e.g. original indices),
+    fall back to hashing.
+  </div>
+
+  <h2>Check your model first</h2>
+  <div class="quiz" id="quiz"></div>
+
+  <h2>Drill — four problems</h2>
+
+  <h3>Drill 1 — converging <span class="lc">LeetCode 167 · Two Sum II (sorted)</span></h3>
+  <p>Sorted <code>int[] numbers</code>; return the 1-indexed positions of the two values
+  summing to <code>target</code>. Must use O(1) extra space.</p>
+  <details><summary>Hint</summary>
+    <p>If <code>numbers[lo] + numbers[hi]</code> is too small, only increasing <code>lo</code>
+    can help; if too big, decrease <code>hi</code>. The sort guarantees this is safe.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int[] twoSum(int[] numbers, int target) {
+    int lo = 0, hi = numbers.length - 1;
+    while (lo &lt; hi) {
+        int sum = numbers[lo] + numbers[hi];
+        if (sum == target) return new int[]{lo + 1, hi + 1};
+        if (sum &lt; target)  lo++;
+        else               hi--;
+    }
+    return new int[]{-1, -1};
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(1). Contrast with hashing Two Sum (Lesson 0001): same
+    problem, but sorted input trades the O(n) map for O(1) pointers. <strong>Know both and when
+    to use each.</strong></p>
+  </details>
+
+  <h3>Drill 2 — symmetric scan <span class="lc">LeetCode 125 · Valid Palindrome</span></h3>
+  <p>Return <code>true</code> if <code>s</code> reads the same forwards and backwards,
+  considering only alphanumerics and ignoring case.</p>
+  <details><summary>Hint</summary>
+    <p>Pointers from both ends moving inward; skip non-alphanumerics; compare lowercased
+    characters. Mismatch → not a palindrome.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public boolean isPalindrome(String s) {
+    int lo = 0, hi = s.length() - 1;
+    while (lo &lt; hi) {
+        while (lo &lt; hi &amp;&amp; !Character.isLetterOrDigit(s.charAt(lo))) lo++;
+        while (lo &lt; hi &amp;&amp; !Character.isLetterOrDigit(s.charAt(hi))) hi--;
+        if (Character.toLowerCase(s.charAt(lo)) != Character.toLowerCase(s.charAt(hi)))
+            return false;
+        lo++; hi--;
+    }
+    return true;
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(1). Insight: the inner skip-loops must also guard
+    <code>lo &lt; hi</code>, or an all-symbol string walks off the end.</p>
+  </details>
+
+  <h3>Drill 3 — the classic <span class="lc">LeetCode 15 · 3Sum</span></h3>
+  <p>Return all unique triplets in <code>int[] nums</code> that sum to zero.</p>
+  <details><summary>Hint</summary>
+    <p>Sort first. Fix index <code>i</code>, then run a converging two-pointer scan on the rest
+    for <code>−nums[i]</code>. Skip duplicate values for both the fixed element and the moving
+    pointers, or you'll emit repeats. This <em>sort + fix one + two pointers</em> template is a
+    top-tier Meta/Google question.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public List&lt;List&lt;Integer&gt;&gt; threeSum(int[] nums) {
+    Arrays.sort(nums);
+    List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+    for (int i = 0; i &lt; nums.length - 2; i++) {
+        if (i &gt; 0 &amp;&amp; nums[i] == nums[i - 1]) continue;        // skip dup pivot
+        int lo = i + 1, hi = nums.length - 1;
+        while (lo &lt; hi) {
+            int sum = nums[i] + nums[lo] + nums[hi];
+            if (sum == 0) {
+                res.add(Arrays.asList(nums[i], nums[lo], nums[hi]));
+                while (lo &lt; hi &amp;&amp; nums[lo] == nums[lo + 1]) lo++;  // skip dups
+                while (lo &lt; hi &amp;&amp; nums[hi] == nums[hi - 1]) hi--;
+                lo++; hi--;
+            } else if (sum &lt; 0) lo++;
+            else hi--;
+        }
+    }
+    return res;
+}</code></pre>
+    <p class="cx">Time O(n²) · Space O(1) beyond output. Insight: sorting (O(n log n)) is dominated
+    by the O(n²) scan, and it's what enables both the two-pointer move and clean dedup.</p>
+  </details>
+
+  <h3>Drill 4 — greedy converging <span class="lc">LeetCode 11 · Container With Most Water</span></h3>
+  <p>Heights <code>int[] h</code>; pick two lines forming the container holding the most water:
+  maximise <code>(hi − lo) · min(h[lo], h[hi])</code>.</p>
+  <details><summary>Hint</summary>
+    <p>Start at the widest pair. Area is capped by the <em>shorter</em> line, so moving the
+    taller pointer can never help — always move the shorter one inward. Greedy, and provably
+    safe.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int maxArea(int[] h) {
+    int lo = 0, hi = h.length - 1, best = 0;
+    while (lo &lt; hi) {
+        best = Math.max(best, (hi - lo) * Math.min(h[lo], h[hi]));
+        if (h[lo] &lt; h[hi]) lo++;
+        else hi--;
+    }
+    return best;
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(1). Insight: be ready to <em>argue</em> why discarding the
+    shorter line is safe — that correctness justification is the Google bar in miniature.</p>
+  </details>
+
+  <h2>Interleave it back in</h2>
+  <p>You now hold two pair-sum tools. Quick recall: <em>unsorted, need original indices?</em>
+  → hashing (Lesson 0001). <em>Sorted, want O(1) space?</em> → two pointers. That fork is a
+  textbook interview decision — rehearse saying it aloud.</p>
+
+  <div class="panel">
+    <h3>Primary source</h3>
+    <p>▸ <a href="https://neetcode.io/practice">NeetCode 150 — Two Pointers</a> for video
+    walkthroughs of 167, 125, 15 and 11, plus more tagged reps on
+    <a href="https://leetcode.com/tag/two-pointers/">LeetCode</a>.</p>
+  </div>
+
+  <div class="ask">
+    <strong>Next steps, in order.</strong> Do the four drills, then say <em>"more two-pointer
+    problems"</em> and I'll build Lesson 0005 (extra reps), followed by an interleaving set that
+    mixes <strong>hashing + two pointers</strong> blind. Stuck on 3Sum's dedup, or want me to
+    review your code? Just ask — I'm your teacher.
+  </div>
+
+  <footer>
+    <strong>Lesson 0004</strong> · DSA for L6/L7 Interviews ·
+    Next: <em>More Two-Pointer Problems</em> (ask when ready) →<br>
+    <a href="../index.html">Course home</a> ·
+    Reference: <a href="../reference/0001-java-collections-cheatsheet.html">Java Collections Cheat Sheet</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 2;
+const QUESTIONS = [
+  {
+    q: "1. What makes converging two pointers correct on a sorted array?",
+    options: [
+      {t:"Each move discards only worse candidates", ok:true},
+      {t:"The array fits entirely in cache", ok:false},
+      {t:"Hashing the values is unnecessary here", ok:false},
+      {t:"Both pointers always move together", ok:false}
+    ],
+    good:"Right — sortedness means a too-small sum can only improve by raising lo, so nothing valid is skipped.",
+    bad:"It's about correctness: sortedness guarantees the discarded direction holds no better answer."
+  },
+  {
+    q: "2. Unsorted array, must return original indices of a pair — best tool?",
+    options: [
+      {t:"Hash map of seen values", ok:true},
+      {t:"Sort then converge inward", ok:false},
+      {t:"Fast and slow pointers", ok:false},
+      {t:"Min heap of the values", ok:false}
+    ],
+    good:"Yes — sorting would scramble the indices you must return, so hash the values to indices instead.",
+    bad:"Sorting destroys the original indices you need. Hash value→index and look up the complement."
+  },
+  {
+    q: "3. Time and space for 3Sum (sort + two pointers)?",
+    options: [
+      {t:"O(n log n) time, O(n) space", ok:false},
+      {t:"O(n^2) time, O(1) space", ok:true},
+      {t:"O(n^3) time, O(1) space", ok:false},
+      {t:"O(n) time, O(n) space", ok:false}
+    ],
+    good:"Correct — the O(n^2) two-pointer scan dominates the O(n log n) sort; space is O(1) beyond output.",
+    bad:"Fix one element (n) and converge over the rest (n) → O(n^2) time; the sort is in place, so O(1) space."
+  }
+];
+</script>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

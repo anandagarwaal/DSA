@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference · Java Collections Cheat Sheet for Interviews</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body class="wide">
+  <nav class="topnav">
+    <a class="home" href="../index.html">Course home</a>
+    <a href="../lessons/0001-hash-map-pattern.html">Lesson 0001 &rarr;</a>
+  </nav>
+  <p class="eyebrow">Reference · 0001</p>
+  <h1>Java Collections Cheat Sheet</h1>
+  <p class="note">The data-structure toolkit you reach for in coding interviews. Keep this open while you drill. Cited by every lesson.</p>
+
+  <h2>The four workhorses</h2>
+  <table>
+    <tr><th>Need</th><th>Use</th><th>Key ops &amp; cost</th></tr>
+    <tr><td>O(1) lookup by key / count</td><td><code>HashMap&lt;K,V&gt;</code></td><td><code>put/get/containsKey</code> ~O(1)</td></tr>
+    <tr><td>O(1) membership / dedup</td><td><code>HashSet&lt;E&gt;</code></td><td><code>add/contains/remove</code> ~O(1)</td></tr>
+    <tr><td>Stack / queue / deque</td><td><code>ArrayDeque&lt;E&gt;</code></td><td><code>push/pop/peek</code>, <code>offer/poll</code> O(1)</td></tr>
+    <tr><td>Min/max on the fly (top-K)</td><td><code>PriorityQueue&lt;E&gt;</code></td><td><code>offer/poll</code> O(log n), <code>peek</code> O(1)</td></tr>
+  </table>
+  <p class="note">Sorted variants when you need ordering: <code>TreeMap</code> / <code>TreeSet</code> give O(log n) ops plus <code>floorKey</code>, <code>ceilingKey</code>, <code>firstKey</code>, range views.</p>
+
+  <h2>HashMap idioms</h2>
+  <pre><code>Map&lt;Integer,Integer&gt; m = new HashMap&lt;&gt;();
+
+// count frequencies
+m.merge(x, 1, Integer::sum);            // m[x] += 1, defaulting to 0
+m.put(x, m.getOrDefault(x, 0) + 1);     // equivalent, classic form
+
+// accumulate into a list (group-by)
+Map&lt;String,List&lt;String&gt;&gt; g = new HashMap&lt;&gt;();
+g.computeIfAbsent(key, k -&gt; new ArrayList&lt;&gt;()).add(val);
+
+// iterate entries
+for (Map.Entry&lt;Integer,Integer&gt; e : m.entrySet()) {
+    int k = e.getKey(), v = e.getValue();
+}</code></pre>
+
+  <h2>ArrayDeque as stack &amp; queue</h2>
+  <pre><code>Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+st.push(1); st.push(2);      // stack: LIFO
+int top = st.pop();          // 2
+
+Deque&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();
+q.offer(1); q.offer(2);      // queue: FIFO
+int front = q.poll();        // 1</code></pre>
+  <p class="note">Prefer <code>ArrayDeque</code> over <code>Stack</code> (legacy, synchronized) and over <code>LinkedList</code> (slower, more memory).</p>
+
+  <h2>PriorityQueue (heaps)</h2>
+  <pre><code>PriorityQueue&lt;Integer&gt; minHeap = new PriorityQueue&lt;&gt;();
+PriorityQueue&lt;Integer&gt; maxHeap = new PriorityQueue&lt;&gt;(Collections.reverseOrder());
+// by custom key, e.g. heap of int[] by element [1]:
+PriorityQueue&lt;int[]&gt; pq = new PriorityQueue&lt;&gt;((a,b) -&gt; a[1] - b[1]);</code></pre>
+
+  <h2>Arrays &amp; strings — quick conversions</h2>
+  <table>
+    <tr><th>Task</th><th>Code</th></tr>
+    <tr><td>Sort array</td><td><code>Arrays.sort(a)</code></td></tr>
+    <tr><td>Sort with comparator</td><td><code>Arrays.sort(arr, (a,b)-&gt;a-b)</code> <span class="note">(boxed types only)</span></td></tr>
+    <tr><td>String → char array</td><td><code>s.toCharArray()</code></td></tr>
+    <tr><td>char array → String</td><td><code>new String(chars)</code> / <code>String.valueOf(chars)</code></td></tr>
+    <tr><td>Build strings in a loop</td><td><code>StringBuilder sb; sb.append(..); sb.toString()</code></td></tr>
+    <tr><td>Fixed-size 2D array</td><td><code>int[][] dp = new int[m][n];</code></td></tr>
+  </table>
+
+  <h2>Gotchas that cost interview points</h2>
+  <ul>
+    <li><strong><code>==</code> vs <code>.equals()</code></strong>: for <code>Integer</code>/<code>String</code> always use <code>.equals()</code>. <code>==</code> compares references (and Integer caches only −128..127).</li>
+    <li><strong>Comparator overflow</strong>: <code>(a,b)-&gt;a-b</code> overflows for large ints. Use <code>Integer.compare(a,b)</code>.</li>
+    <li><strong>Modifying a collection while iterating</strong> throws <code>ConcurrentModificationException</code>. Collect changes, apply after — or use an iterator's <code>remove()</code>.</li>
+    <li><strong>Autoboxing in hot loops</strong>: prefer primitive arrays (<code>int[]</code>) over <code>List&lt;Integer&gt;</code> when performance matters.</li>
+  </ul>
+
+  <footer>
+    Part of the <strong>DSA for L6/L7 Interviews</strong> workspace.
+    Source of truth for Java idioms — lessons cite this rather than repeating it.
+  </footer>
+</body>
+</html>

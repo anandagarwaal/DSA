@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0012 · Interleaving — Binary Search + Prior Patterns</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../index.html">Course home</a>
+    <a href="0013-stacks-monotonic.html">Next lesson: Stacks &amp; Monotonic Stack &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0012 · Interleaving</p>
+  <h1>Mixed Retrieval — Binary Search + Windows + Pointers + Hashing</h1>
+  <p class="lede">Four tools now. The trap: missing a hidden monotonic predicate and brute-forcing instead.</p>
+
+  <div class="panel">
+    <strong>Do this after a 2–3 day gap</strong> from Lessons 0010–0011. The new failure mode is
+    not seeing the "minimise/maximise the value such that feasible" shape and reaching for a linear
+    scan when an O(log) bisection exists. Train the recognition.
+  </div>
+
+  <h2>The decision fork to internalise</h2>
+  <table>
+    <tr><th>Signal</th><th>Reach for</th></tr>
+    <tr><td>"Min/max value such that a feasibility check passes"</td><td>Binary search on the answer</td></tr>
+    <tr><td>Sorted array, find element / boundary</td><td>Binary search (lower/upper bound)</td></tr>
+    <tr><td>Longest/shortest contiguous run, positive constraint</td><td>Sliding window</td></tr>
+    <tr><td>Sorted, pair/triplet, O(1) space</td><td>Converging two pointers</td></tr>
+    <tr><td>Contiguous sum with negatives</td><td>Prefix sum + hash map</td></tr>
+    <tr><td>"Seen it?" / counts / group-by</td><td>Hash set / map</td></tr>
+  </table>
+
+  <h2>Drill — name the tool, cold</h2>
+  <p>State the approach <em>and</em> its complexity in under 30 seconds, then check.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <h2>Debrief</h2>
+  <p>The Staff-level reflex: when you hear "smallest/largest X such that Y is achievable," ask
+  "is feasibility monotonic in X?" If yes, you have an O(log·check) solution before writing a line.
+  Contrast that with windows (contiguous + monotonic aggregate) and sorting+pointers (pair search).
+  Naming the discriminator is what interviewers score.</p>
+
+  <div class="ask">
+    <strong>Hesitated anywhere?</strong> Tell me which items and I'll generate a targeted set.
+    Otherwise, on to <strong><a href="0013-stacks-monotonic.html">Lesson 0013 · Stacks &amp; the
+    Monotonic Stack</a></strong> — the pattern behind "next greater element" and histogram problems.
+  </div>
+
+  <footer>
+    <strong>Lesson 0012</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0013-stacks-monotonic.html">Lesson 0013 · Stacks &amp; Monotonic Stack</a> →<br>
+    <a href="../index.html">Course home</a> · <a href="0011-binary-search-more-problems.html">← More Binary Search</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 12;
+const QUESTIONS = [
+  {
+    q: "1. Minimum eating speed to finish all piles within h hours.",
+    options: [
+      {t:"Binary search over the speed value", ok:true},
+      {t:"Sliding window across the piles", ok:false},
+      {t:"Converging pointers on the piles", ok:false},
+      {t:"Hash each pile to its own count", ok:false}
+    ],
+    good:"Right — hours-needed is monotonic in speed, so bisect the speed and check each in one pass.",
+    bad:"Feasibility is monotonic in speed → binary-search the answer, O(n) feasibility check per guess."
+  },
+  {
+    q: "2. Longest substring with at most two distinct characters.",
+    options: [
+      {t:"Variable window with a count map", ok:true},
+      {t:"Binary search the substring length", ok:false},
+      {t:"Converging pointers from the ends", ok:false},
+      {t:"Sort then take the longest stretch", ok:false}
+    ],
+    good:"Right — contiguous + at-most-K constraint → variable window; shrink while distinct exceeds two.",
+    bad:"It's a classic at-most-K-distinct window: grow right, shrink left while size > 2. O(n)."
+  },
+  {
+    q: "3. Find any element's index in a sorted rotated array.",
+    options: [
+      {t:"Binary search using sorted half", ok:true},
+      {t:"Linear scan from left to right", ok:false},
+      {t:"Sliding window of size two", ok:false},
+      {t:"Hash every value to its index", ok:false}
+    ],
+    good:"Right — one half is always sorted; detect it, test the target's range, bisect. O(log n).",
+    bad:"Rotation still allows O(log n): one half is sorted each step, so binary-search using that half."
+  },
+  {
+    q: "4. Count subarrays with sum k, array has negatives.",
+    options: [
+      {t:"Prefix sums kept in a hashmap", ok:true},
+      {t:"Binary search over prefix sums", ok:false},
+      {t:"Variable window over the sum", ok:false},
+      {t:"Converging pointers from ends", ok:false}
+    ],
+    good:"Right — negatives kill window and break prefix monotonicity, so count prefixes in a map. O(n).",
+    bad:"Negatives mean prefix sums aren't sorted, so no window or bisection — use a prefix count map. O(n)."
+  },
+  {
+    q: "5. Two values summing to target in a sorted array, O(1) space.",
+    options: [
+      {t:"Converging pointers from the ends", ok:true},
+      {t:"Binary search each complement value", ok:false},
+      {t:"Variable window over the values", ok:false},
+      {t:"Hash each value to its own index", ok:false}
+    ],
+    good:"Right — converging pointers give O(n), O(1); binary-searching each complement is O(n log n).",
+    bad:"Sorted + O(1) space → converging two pointers, O(n). Per-element binary search is slower and needless."
+  },
+  {
+    q: "6. Smallest divisor so the sum of ceilings stays within a threshold.",
+    options: [
+      {t:"Binary search over the divisor", ok:true},
+      {t:"Sliding window over the numbers", ok:false},
+      {t:"Converging pointers on the array", ok:false},
+      {t:"Hash each quotient that you see", ok:false}
+    ],
+    good:"Right — the ceiling-sum is non-increasing in the divisor, so bisect the divisor. O(n log max).",
+    bad:"Sum-of-ceilings shrinks monotonically as the divisor grows → binary-search the divisor."
+  }
+];
+</script>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

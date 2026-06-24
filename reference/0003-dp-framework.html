@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference 0003 · Dynamic Programming Framework</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body class="wide">
+  <nav class="topnav">
+    <a class="home" href="../index.html">Course home</a>
+    <a href="../lessons/0031-dynamic-programming.html">Used by: Lesson 0031 &rarr;</a>
+  </nav>
+  <p class="eyebrow">Reference 0003</p>
+  <h1>Dynamic Programming — A Reusable Framework</h1>
+  <p class="lede">A fixed five-question procedure that turns any DP problem into mechanical code, plus the canonical templates.</p>
+
+  <p>DP applies when a problem has <strong>optimal substructure</strong> (the answer is built from
+  answers to subproblems) and <strong>overlapping subproblems</strong> (the same subproblem recurs).
+  Don't pattern-match on memorised solutions — run the procedure. Source:
+  <a href="https://cp-algorithms.com/dynamic_programming/intro-to-dp.html">cp-algorithms — DP</a>.</p>
+
+  <h2>The five questions</h2>
+  <table>
+    <tr><th>#</th><th>Question</th><th>Example (House Robber)</th></tr>
+    <tr><td>1</td><td><strong>State:</strong> what defines a subproblem?</td><td><code>dp[i]</code> = max loot from houses 0..i</td></tr>
+    <tr><td>2</td><td><strong>Choice:</strong> what decisions at each state?</td><td>Rob house i, or skip it</td></tr>
+    <tr><td>3</td><td><strong>Recurrence:</strong> combine sub-answers</td><td><code>dp[i] = max(dp[i-1], dp[i-2] + a[i])</code></td></tr>
+    <tr><td>4</td><td><strong>Base case:</strong> smallest subproblems</td><td><code>dp[0]=a[0]</code>, <code>dp[1]=max(a[0],a[1])</code></td></tr>
+    <tr><td>5</td><td><strong>Order / answer:</strong> fill direction &amp; where the result sits</td><td>Left→right; answer at <code>dp[n-1]</code></td></tr>
+  </table>
+  <p>Write the recurrence first in plain words, then translate. The recurrence <em>is</em> the
+  problem — everything else (memo vs table, space optimisation) is mechanical.</p>
+
+  <h2>Top-down (memoization) template</h2>
+<pre><code>Integer[] memo;                              // null = uncomputed
+int solve(int i) {
+    if (isBase(i)) return baseValue;
+    if (memo[i] != null) return memo[i];     // overlap → reuse
+    int best = combine(solve(subproblemA), solve(subproblemB));
+    return memo[i] = best;
+}</code></pre>
+  <p>Write the recursion naturally, then add the memo array. Easiest to derive; recursion depth is
+  the only risk. Great when the state space is sparse or irregular.</p>
+
+  <h2>Bottom-up (tabulation) template</h2>
+<pre><code>int[] dp = new int[n + 1];
+dp[base] = baseValue;
+for (int i = lo; i &lt;= hi; i++)               // an order where deps are already done
+    dp[i] = combine(dp[i - 1], dp[i - 2] /* ... */);
+return dp[n];</code></pre>
+  <p>No recursion overhead; the fill order must respect dependencies. Often the same recurrence as
+  the memo version, just iterative.</p>
+
+  <h2>Space optimisation</h2>
+<pre><code>// If dp[i] depends only on dp[i-1] and dp[i-2], keep two scalars:
+int prev2 = base0, prev1 = base1;
+for (int i = 2; i &lt;= n; i++) {
+    int cur = combine(prev1, prev2);
+    prev2 = prev1; prev1 = cur;
+}
+return prev1;</code></pre>
+  <p>When each row depends only on the last one or two, drop the array to O(1) (1-D) or roll a 2-D
+  table down to one row. Mentioning this rolling-array trick is a frequent interview bonus.</p>
+
+  <h2>The classic DP families</h2>
+  <table>
+    <tr><th>Family</th><th>State shape</th><th>Canonical problems</th></tr>
+    <tr><td>Linear / sequence</td><td><code>dp[i]</code> over index i</td><td>Climbing Stairs, House Robber, Max Subarray</td></tr>
+    <tr><td>Knapsack / subset</td><td><code>dp[i][w]</code> item × capacity</td><td>0/1 Knapsack, Partition Equal Subset, Coin Change</td></tr>
+    <tr><td>Two-sequence (grid)</td><td><code>dp[i][j]</code> over two strings/axes</td><td>Edit Distance, LCS, Unique Paths</td></tr>
+    <tr><td>Interval</td><td><code>dp[i][j]</code> over a range</td><td>Matrix Chain, Burst Balloons, Palindrome Partition II</td></tr>
+    <tr><td>Subsequence on one string</td><td><code>dp[i]</code> ending at / using i</td><td>Longest Increasing Subsequence (O(n²) or O(n log n))</td></tr>
+    <tr><td>State-machine</td><td><code>dp[i][state]</code></td><td>Best Time to Buy/Sell Stock variants</td></tr>
+  </table>
+
+  <h2>1-D vs 2-D recurrence shapes</h2>
+<pre><code>// Coin Change — fewest coins to make 'amount' (unbounded knapsack, 1-D):
+int[] dp = new int[amount + 1];
+Arrays.fill(dp, amount + 1); dp[0] = 0;
+for (int a = 1; a &lt;= amount; a++)
+    for (int c : coins) if (c &lt;= a) dp[a] = Math.min(dp[a], dp[a - c] + 1);
+return dp[amount] &gt; amount ? -1 : dp[amount];
+
+// Edit Distance — two strings, 2-D grid:
+int[][] dp = new int[m + 1][n + 1];
+for (int i = 0; i &lt;= m; i++) dp[i][0] = i;    // delete all
+for (int j = 0; j &lt;= n; j++) dp[0][j] = j;    // insert all
+for (int i = 1; i &lt;= m; i++)
+    for (int j = 1; j &lt;= n; j++)
+        dp[i][j] = (a.charAt(i-1) == b.charAt(j-1))
+            ? dp[i-1][j-1]
+            : 1 + Math.min(dp[i-1][j-1], Math.min(dp[i-1][j], dp[i][j-1]));
+return dp[m][n];</code></pre>
+
+  <div class="panel">
+    <h3>How to use this in an interview</h3>
+    <p>Say the five answers <em>out loud</em> before coding: "State is …, the choice is …, so the
+    recurrence is …, base case …, and I'll fill … returning …." This narration is exactly the
+    "why correct / why optimal" signal Google and Meta probe for. Then code the memo version (safest
+    to get right), and mention the bottom-up + space-optimised refinements as follow-ups.</p>
+  </div>
+
+  <div class="ask">
+    <strong>Reference, not a lesson.</strong> Drills live in
+    <a href="../lessons/0031-dynamic-programming.html">Lesson 0031</a> and
+    <a href="../lessons/0032-dp-more-problems.html">0032</a>. Ask me to derive the five questions
+    live on any DP problem you're stuck on.
+  </div>
+
+  <footer>
+    <strong>Reference 0003</strong> · DSA for L6/L7 Interviews ·
+    <a href="../index.html">Course home</a> ·
+    <a href="0001-java-collections-cheatsheet.html">Collections cheat sheet</a> ·
+    <a href="0002-tree-traversal-templates.html">Traversal templates</a>
+  </footer>
+</body>
+</html>

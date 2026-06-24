@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0022 · Heaps &amp; Top-K Patterns</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../index.html">Course home</a>
+    <a href="0023-heaps-more-problems.html">Next: More problems &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0022 · Heaps &amp; Top-K</p>
+  <h1>Heaps &amp; Top-K Patterns</h1>
+  <p class="lede">When you need the best k of n — not all of them sorted — a heap of size k beats a full sort.</p>
+
+  <p>A heap (Java's <code>PriorityQueue</code>) gives O(log n) insert and O(1) peek of the
+  min (or max). The killer insight for interviews: to find the <strong>k largest</strong>, keep a
+  <strong>min-heap of size k</strong> — evict the smallest whenever it overflows. That's
+  O(n log k), beating an O(n log n) full sort when k ≪ n, and it streams.</p>
+
+  <div class="why">The counter-intuitive bit: for k <em>largest</em> you use a <em>min</em>-heap (so
+  the smallest of your current top-k is cheap to evict), and for k <em>smallest</em> a
+  <em>max</em>-heap. Saying that out loud — and why — separates people who memorised from people who
+  understand. The heap holds your "current best k"; its root is the weakest survivor.</div>
+
+  <h2>The size-k heap template</h2>
+<pre><code>// k largest elements, O(n log k), O(k) space.
+PriorityQueue&lt;Integer&gt; minHeap = new PriorityQueue&lt;&gt;();   // natural order = min-heap
+for (int x : nums) {
+    minHeap.offer(x);
+    if (minHeap.size() &gt; k) minHeap.poll();   // drop the smallest survivor
+}
+// minHeap now holds the k largest; minHeap.peek() is the kth largest.</code></pre>
+  <p>For custom order: <code>new PriorityQueue&lt;&gt;((a,b) -&gt; a.freq - b.freq)</code>. For a
+  max-heap of ints: <code>new PriorityQueue&lt;&gt;(Collections.reverseOrder())</code>.</p>
+
+  <div class="signal">
+    <strong>Pattern signals.</strong> <em>"k largest/smallest/closest/most frequent"</em>,
+    <em>"merge k sorted …"</em>, <em>"median of a stream"</em>, <em>"schedule by priority"</em>,
+    <em>"repeatedly take the best/worst remaining"</em>. If you only need the top k (not a full
+    ordering), reach for a heap.
+  </div>
+
+  <h2>Check your model first</h2>
+  <div class="quiz" id="quiz"></div>
+
+  <h2>Drill — three problems</h2>
+
+  <h3>Drill 1 — top-k with counts <span class="lc">LeetCode 347 · Top K Frequent Elements</span></h3>
+  <p>Return the <code>k</code> most frequent elements.</p>
+  <details><summary>Hint</summary>
+    <p>Count with a hashmap, then keep a size-k min-heap ordered by frequency. (Bucket sort by
+    frequency gives an O(n) alternative — mention it.)</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int[] topKFrequent(int[] nums, int k) {
+    Map&lt;Integer,Integer&gt; freq = new HashMap&lt;&gt;();
+    for (int x : nums) freq.merge(x, 1, Integer::sum);
+    PriorityQueue&lt;Integer&gt; heap =
+        new PriorityQueue&lt;&gt;((a, b) -&gt; freq.get(a) - freq.get(b));  // min by freq
+    for (int key : freq.keySet()) {
+        heap.offer(key);
+        if (heap.size() &gt; k) heap.poll();
+    }
+    int[] res = new int[k];
+    for (int i = 0; i &lt; k; i++) res[i] = heap.poll();
+    return res;
+}</code></pre>
+    <p class="cx">Time O(n log k) · Space O(n). Insight: heap-of-k beats sorting all distinct
+    elements; if asked for strict O(n), pivot to bucket sort by frequency.</p>
+  </details>
+
+  <h3>Drill 2 — merge k lists with a heap <span class="lc">LeetCode 23 · Merge k Sorted Lists</span></h3>
+  <p>Merge <code>k</code> sorted linked lists into one. A frequent hard.</p>
+  <details><summary>Hint</summary>
+    <p>Min-heap of the current head of each list. Poll the smallest, append it, push its
+    <code>next</code>. The heap always holds ≤ k nodes.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public ListNode mergeKLists(ListNode[] lists) {
+    PriorityQueue&lt;ListNode&gt; pq = new PriorityQueue&lt;&gt;((a, b) -&gt; a.val - b.val);
+    for (ListNode l : lists) if (l != null) pq.offer(l);
+    ListNode dummy = new ListNode(0), tail = dummy;
+    while (!pq.isEmpty()) {
+        ListNode n = pq.poll();
+        tail.next = n; tail = n;
+        if (n.next != null) pq.offer(n.next);
+    }
+    return dummy.next;
+}</code></pre>
+    <p class="cx">Time O(N log k) for N total nodes · Space O(k). Insight: the heap size stays k,
+    not N — that's why it beats repeatedly scanning all k heads (O(Nk)).</p>
+  </details>
+
+  <h3>Drill 3 — two heaps <span class="lc">LeetCode 295 · Find Median from Data Stream</span></h3>
+  <p>Support <code>addNum</code> and <code>findMedian</code> over a growing stream.</p>
+  <details><summary>Hint</summary>
+    <p>A max-heap for the lower half, a min-heap for the upper half. Keep sizes balanced (differ by
+    ≤ 1). Median is the larger heap's root, or the average of both roots when equal.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>private PriorityQueue&lt;Integer&gt; lo = new PriorityQueue&lt;&gt;(Collections.reverseOrder()); // max-heap
+private PriorityQueue&lt;Integer&gt; hi = new PriorityQueue&lt;&gt;();                            // min-heap
+public void addNum(int num) {
+    lo.offer(num);
+    hi.offer(lo.poll());              // funnel through to keep order across heaps
+    if (hi.size() &gt; lo.size()) lo.offer(hi.poll());   // rebalance
+}
+public double findMedian() {
+    return lo.size() &gt; hi.size() ? lo.peek() : (lo.peek() + hi.peek()) / 2.0;
+}</code></pre>
+    <p class="cx">Time O(log n) add · O(1) median · Space O(n). Insight: the "push to one, pop to
+    the other" funnel guarantees every element in <code>lo</code> ≤ every element in <code>hi</code>
+    — that invariant is what makes the roots the median.</p>
+  </details>
+
+  <div class="panel">
+    <h3>Primary source</h3>
+    <p>▸ <a href="https://neetcode.io/practice">NeetCode — Heap / Priority Queue</a> for the
+    two-heaps walkthrough, and the <a href="https://leetcode.com/tag/heap-priority-queue/">LeetCode
+    tag</a>. See also the <a href="../reference/0001-java-collections-cheatsheet.html">Java
+    collections cheat sheet</a> for PriorityQueue idioms.</p>
+  </div>
+
+  <div class="ask">
+    <strong>Next, in order.</strong> Do these, then say <em>"more heaps"</em> for
+    <a href="0023-heaps-more-problems.html">Lesson 0023</a>, then the interleaving set. The
+    min-heap-for-k-largest inversion trips everyone — ask me to walk through why if it feels backwards.
+  </div>
+
+  <footer>
+    <strong>Lesson 0022</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0023-heaps-more-problems.html">More Heap Problems</a> →<br>
+    <a href="../index.html">Course home</a> · <a href="0021-interleaving-trees.html">← Interleaving 0021</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 22;
+const QUESTIONS = [
+  {
+    q: "1. To keep the k largest of n streaming numbers, which heap?",
+    options: [
+      {t:"A min-heap holding k elements", ok:true},
+      {t:"A max-heap holding k elements", ok:false},
+      {t:"A min-heap holding n elements", ok:false},
+      {t:"A max-heap holding n elements", ok:false}
+    ],
+    good:"Right — a size-k min-heap lets you evict the smallest survivor cheaply; its root is the kth largest.",
+    bad:"For k LARGEST use a size-k MIN-heap: the root is the weakest of your top-k, easy to drop when beaten."
+  },
+  {
+    q: "2. Why is heap-of-k better than sorting for the k largest of n?",
+    options: [
+      {t:"O(n log k) beats O(n log n)", ok:true},
+      {t:"It avoids using any comparisons", ok:false},
+      {t:"Sorting cannot handle duplicates", ok:false},
+      {t:"Heaps always use constant memory", ok:false}
+    ],
+    good:"Right — when k is much smaller than n, n log k is a real win, and it works on a stream.",
+    bad:"The gain is O(n log k) vs O(n log n); for k ≪ n that's faster and it streams without storing all n."
+  },
+  {
+    q: "3. Merging k sorted lists, what does the heap hold at any time?",
+    options: [
+      {t:"One current head per list, at most k", ok:true},
+      {t:"Every node across all the lists", ok:false},
+      {t:"Only the k smallest values seen", ok:false},
+      {t:"The tails of each of the lists", ok:false}
+    ],
+    good:"Right — push each list's head, poll the min, push its next; the heap stays size ≤ k.",
+    bad:"It holds one frontier node per list (≤ k). Poll the min, then push that node's successor."
+  },
+  {
+    q: "4. Streaming median with two heaps — what invariant must hold?",
+    options: [
+      {t:"Every low-heap value ≤ every high-heap value", ok:true},
+      {t:"Both heaps must always be equal in size", ok:false},
+      {t:"The heaps share one backing array", ok:false},
+      {t:"All duplicates go to the max-heap", ok:false}
+    ],
+    good:"Right — lo (max-heap) holds the smaller half, hi (min-heap) the larger; their roots straddle the median.",
+    bad:"The key invariant: max(lo) ≤ min(hi). Sizes differ by at most one, which fixes where the median sits."
+  }
+];
+</script>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

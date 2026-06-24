@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0002 · More Hashing Problems</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../index.html">Course home</a>
+    <a href="0003-interleaving-hashing.html">Next: Interleaving &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0002 · Arrays &amp; Hashing — Reps</p>
+  <h1>More Hashing Problems</h1>
+  <p class="lede">Four more reps to turn the pattern from "I follow it" into "I reach for it without thinking."</p>
+
+  <p>You've met the three faces of hashing in <a href="0001-hash-map-pattern.html">Lesson 0001</a>:
+  <strong>membership</strong>, <strong>group-by</strong>, and <strong>prefix-sum counting</strong>.
+  Fluency comes from reps, not new theory — so these are drills only. Same rule:
+  fight each one before opening the hint. Aim to <em>name the tool aloud</em>
+  ("set for membership", "count signature", …) before you write code — that naming
+  reflex is exactly what the interview clock rewards.</p>
+
+  <div class="why">For each problem, state the brute force and its complexity <em>first</em>,
+  then the hashed improvement. Saying "naive is O(n²), the map makes it O(n)" out loud is
+  half of what the Google interviewer is listening for.</div>
+
+  <h3>Drill 1 — membership <span class="lc">LeetCode 217 · Contains Duplicate</span></h3>
+  <p>Return <code>true</code> if any value appears at least twice in <code>int[] nums</code>.</p>
+  <details><summary>Hint</summary>
+    <p>"Have I seen this before?" → <code>HashSet</code>. Add as you go; if <code>add</code>
+    returns <code>false</code>, the value was already present.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public boolean containsDuplicate(int[] nums) {
+    Set&lt;Integer&gt; seen = new HashSet&lt;&gt;();
+    for (int x : nums) {
+        if (!seen.add(x)) return true;   // add() returns false if already present
+    }
+    return false;
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(n). Insight: <code>add()</code>'s boolean return makes the
+    membership-check and insert a single operation.</p>
+  </details>
+
+  <h3>Drill 2 — count signature <span class="lc">LeetCode 242 · Valid Anagram</span></h3>
+  <p>Given <code>s</code> and <code>t</code>, return <code>true</code> if <code>t</code> is an
+  anagram of <code>s</code>.</p>
+  <details><summary>Hint</summary>
+    <p>Two strings are anagrams iff their letter <em>counts</em> match. For lowercase ASCII,
+    a length-26 <code>int[]</code> is a faster "map" than a <code>HashMap</code>: increment
+    for <code>s</code>, decrement for <code>t</code>, then check all zero.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public boolean isAnagram(String s, String t) {
+    if (s.length() != t.length()) return false;
+    int[] count = new int[26];
+    for (int i = 0; i &lt; s.length(); i++) {
+        count[s.charAt(i) - 'a']++;
+        count[t.charAt(i) - 'a']--;
+    }
+    for (int c : count) if (c != 0) return false;
+    return true;
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(1) (fixed 26). Insight: when the key universe is small and
+    fixed, an array <em>is</em> the hash map — faster and zero boxing. For full Unicode, fall
+    back to a <code>HashMap&lt;Character,Integer&gt;</code>.</p>
+  </details>
+
+  <h3>Drill 3 — the O(n) star <span class="lc">LeetCode 128 · Longest Consecutive Sequence</span></h3>
+  <p>Given an unsorted <code>int[] nums</code>, return the length of the longest run of
+  consecutive integers. Must be <strong>O(n)</strong> — sorting (O(n log n)) is disqualified.</p>
+  <details><summary>Hint</summary>
+    <p>Put everything in a <code>HashSet</code>. A number starts a sequence only if
+    <code>x − 1</code> is <em>not</em> in the set. From each such start, walk
+    <code>x+1, x+2, …</code> counting length. Each number is visited at most twice overall,
+    so it's O(n) despite the inner loop.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int longestConsecutive(int[] nums) {
+    Set&lt;Integer&gt; set = new HashSet&lt;&gt;();
+    for (int x : nums) set.add(x);
+    int best = 0;
+    for (int x : set) {
+        if (set.contains(x - 1)) continue;   // not a sequence start
+        int len = 1, cur = x;
+        while (set.contains(cur + 1)) { cur++; len++; }
+        best = Math.max(best, len);
+    }
+    return best;
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(n). Insight: the <code>x−1</code> guard is what keeps it
+    linear — without it you'd re-walk every sequence from every member. This "only start work
+    at a boundary" trick recurs (e.g. in matrix/island problems). A favourite at Google.</p>
+  </details>
+
+  <h3>Drill 4 — map + bucket <span class="lc">LeetCode 347 · Top K Frequent Elements</span></h3>
+  <p>Return the <code>k</code> most frequent elements of <code>int[] nums</code>. Expected
+  better than O(n log n).</p>
+  <details><summary>Hint</summary>
+    <p>Step 1: count frequencies in a map (hashing). Step 2: you could pop the top-k from a
+    heap (O(n log k)) — but frequencies range only <code>1..n</code>, so
+    <em>bucket by frequency</em>: <code>buckets[f]</code> = list of values seen f times. Walk
+    buckets high→low to collect k. That's O(n).</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int[] topKFrequent(int[] nums, int k) {
+    Map&lt;Integer,Integer&gt; freq = new HashMap&lt;&gt;();
+    for (int x : nums) freq.merge(x, 1, Integer::sum);
+
+    List&lt;Integer&gt;[] bucket = new List[nums.length + 1]; // index = frequency
+    for (var e : freq.entrySet()) {
+        int f = e.getValue();
+        if (bucket[f] == null) bucket[f] = new ArrayList&lt;&gt;();
+        bucket[f].add(e.getKey());
+    }
+    int[] ans = new int[k]; int idx = 0;
+    for (int f = bucket.length - 1; f &gt;= 0 &amp;&amp; idx &lt; k; f--) {
+        if (bucket[f] == null) continue;
+        for (int v : bucket[f]) { if (idx &lt; k) ans[idx++] = v; }
+    }
+    return ans;
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(n). Insight: hashing counts; bucket-by-value beats a heap
+    when the key range is bounded. Mention <em>both</em> approaches in an interview — the heap
+    version is the natural bridge to the upcoming <strong>Heaps / Top-K</strong> module.</p>
+  </details>
+
+  <h2>Self-check</h2>
+  <p>Could you, right now, on a blank page: (1) name the hashing tool for each of the four,
+  and (2) state its time and space? If any felt shaky, redo it tomorrow — that spacing is
+  deliberate. Use the <a href="../reference/0001-java-collections-cheatsheet.html">Collections
+  Cheat Sheet</a> for the idioms, not the logic.</p>
+
+  <div class="panel">
+    <h3>Primary source</h3>
+    <p>▸ <a href="https://neetcode.io/practice">NeetCode 150 — Arrays &amp; Hashing</a> for more
+    tagged reps and video walkthroughs of exactly these problems.</p>
+  </div>
+
+  <div class="ask">
+    <strong>Want more?</strong> Ask me for additional hashing problems, a harder variant
+    (e.g. <span class="lc">LRU Cache</span>), or paste your code for review. When you've banked
+    these reps, do the <strong><a href="0003-interleaving-hashing.html">Interleaving set</a></strong>
+    after a 2–3 day gap — that delay is the point, not a delay.
+  </div>
+
+  <footer>
+    <strong>Lesson 0002</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0003-interleaving-hashing.html">Interleaving — Mixed Retrieval</a> →<br>
+    <a href="../index.html">Course home</a> · <a href="0001-hash-map-pattern.html">← Lesson 0001</a>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0014 · More Stack Problems</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../index.html">Course home</a>
+    <a href="0015-interleaving-stacks.html">Next: Interleaving &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0014 · Stacks — Reps</p>
+  <h1>More Stack Problems</h1>
+  <p class="lede">Four reps: stack-with-aux-state, expression evaluation, a circular monotonic stack, and a two-stack design.</p>
+
+  <p>From <a href="0013-stacks-monotonic.html">Lesson 0013</a> you have plain LIFO and the
+  monotonic stack. These reps add an auxiliary stack, parsing, the circular-array twist, and a
+  design problem. State the stack's invariant before coding — what each element <em>means</em>
+  while it sits there.</p>
+
+  <h3>Drill 1 — stack carrying extra state <span class="lc">LeetCode 155 · Min Stack</span></h3>
+  <p>Design a stack with push/pop/top and <code>getMin</code>, all O(1).</p>
+  <details><summary>Hint</summary>
+    <p>Store pairs <code>(value, minSoFar)</code>, or keep a parallel min-stack. Each entry
+    records the minimum of everything at or below it.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>class MinStack {
+    private final Deque&lt;int[]&gt; st = new ArrayDeque&lt;&gt;();   // {value, minSoFar}
+    public void push(int x) {
+        int min = st.isEmpty() ? x : Math.min(x, st.peek()[1]);
+        st.push(new int[]{x, min});
+    }
+    public void pop()    { st.pop(); }
+    public int  top()    { return st.peek()[0]; }
+    public int  getMin() { return st.peek()[1]; }
+}</code></pre>
+    <p class="cx">Time O(1) all ops · Space O(n). Insight: caching the running min <em>per entry</em>
+    means pop never has to recompute it — the classic "carry the answer with the element" trick.</p>
+  </details>
+
+  <h3>Drill 2 — parse &amp; evaluate <span class="lc">LeetCode 150 · Evaluate Reverse Polish Notation</span></h3>
+  <p>Evaluate an arithmetic expression given in Reverse Polish (postfix) notation.</p>
+  <details><summary>Hint</summary>
+    <p>Push numbers. On an operator, pop the top two operands, apply, push the result. Mind operand
+    order for <code>−</code> and <code>/</code> (first popped is the right operand).</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int evalRPN(String[] tokens) {
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+    for (String tk : tokens) {
+        switch (tk) {
+            case "+": st.push(st.pop() + st.pop()); break;
+            case "*": st.push(st.pop() * st.pop()); break;
+            case "-": { int b = st.pop(), a = st.pop(); st.push(a - b); break; }
+            case "/": { int b = st.pop(), a = st.pop(); st.push(a / b); break; }
+            default:  st.push(Integer.parseInt(tk));
+        }
+    }
+    return st.pop();
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(n). Insight: postfix needs no precedence handling — the stack
+    <em>is</em> the parse tree. Order matters only for non-commutative ops.</p>
+  </details>
+
+  <h3>Drill 3 — circular monotonic <span class="lc">LeetCode 503 · Next Greater Element II</span></h3>
+  <p>Like next-greater, but the array is circular (wraps around).</p>
+  <details><summary>Hint</summary>
+    <p>Iterate <code>2n</code> times, indexing with <code>i % n</code>; only push during the first
+    pass (or push always but guard). The second lap lets earlier elements find a greater one that
+    wraps past the end.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int[] nextGreaterElements(int[] a) {
+    int n = a.length;
+    int[] res = new int[n];
+    Arrays.fill(res, -1);
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();   // indices, values decreasing
+    for (int i = 0; i &lt; 2 * n; i++) {
+        int v = a[i % n];
+        while (!st.isEmpty() &amp;&amp; v &gt; a[st.peek()]) res[st.pop()] = v;
+        if (i &lt; n) st.push(i);
+    }
+    return res;
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(n). Insight: "simulate a second loop with <code>i % n</code>"
+    is the standard circular-array trick — reuse it for circular sums and rotations too.</p>
+  </details>
+
+  <h3>Drill 4 — design with two stacks <span class="lc">LeetCode 232 · Implement Queue using Stacks</span></h3>
+  <p>Implement FIFO queue operations using only two LIFO stacks; amortised O(1) per op.</p>
+  <details><summary>Hint</summary>
+    <p><code>in</code> stack takes pushes; <code>out</code> stack serves pops. When
+    <code>out</code> is empty, pour all of <code>in</code> into it — that reverses the order once.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>class MyQueue {
+    private final Deque&lt;Integer&gt; in = new ArrayDeque&lt;&gt;(), out = new ArrayDeque&lt;&gt;();
+    public void push(int x) { in.push(x); }
+    public int pop()  { shift(); return out.pop(); }
+    public int peek() { shift(); return out.peek(); }
+    public boolean empty() { return in.isEmpty() &amp;&amp; out.isEmpty(); }
+    private void shift() {
+        if (out.isEmpty()) while (!in.isEmpty()) out.push(in.pop());
+    }
+}</code></pre>
+    <p class="cx">Time O(1) amortised · Space O(n). Insight: each element is moved between stacks at
+    most once, so despite the occasional O(n) pour, the amortised cost is O(1) — same accounting
+    argument as the monotonic stack.</p>
+  </details>
+
+  <h2>Self-check</h2>
+  <p>Classify each: aux-state stack (D1), evaluation stack (D2), circular monotonic (D3), two-stack
+  design (D4). Note the recurring "n moves total → O(1) amortised" argument in D1, D3, D4 — make it
+  a reflex.</p>
+
+  <div class="panel">
+    <h3>Primary source</h3>
+    <p>▸ <a href="https://neetcode.io/practice">NeetCode — Stack</a> for video, and the
+    <a href="https://leetcode.com/tag/stack/">LeetCode stack tag</a> for more reps.</p>
+  </div>
+
+  <div class="ask">
+    <strong>All four clean?</strong> After a 2–3 day gap, do the
+    <strong><a href="0015-interleaving-stacks.html">Interleaving set</a></strong>. Want
+    <span class="lc">Largest Rectangle</span> reframed as <span class="lc">Maximal Rectangle</span>
+    (the 2D version)? Ask and I'll build it.
+  </div>
+
+  <footer>
+    <strong>Lesson 0014</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0015-interleaving-stacks.html">Interleaving — Stacks + Prior Patterns</a> →<br>
+    <a href="../index.html">Course home</a> · <a href="0013-stacks-monotonic.html">← Lesson 0013</a>
+  </footer>
+</body>
+</html>

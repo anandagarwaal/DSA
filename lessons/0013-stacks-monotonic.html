@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0013 · Stacks &amp; the Monotonic Stack</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../index.html">Course home</a>
+    <a href="0014-stacks-more-problems.html">Next: More problems &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0013 · Stacks &amp; Monotonic Stack</p>
+  <h1>Stacks &amp; the Monotonic Stack</h1>
+  <p class="lede">A stack tracks "the most recent unresolved thing." Keep it monotonic and "next greater/smaller" collapses to O(n).</p>
+
+  <p>The plain stack handles nesting and matching — parentheses, undo, expression evaluation. The
+  power-up is the <strong>monotonic stack</strong>: you keep the stack sorted (increasing or
+  decreasing) by popping anything that violates the order as each element arrives. Each pop
+  <em>resolves</em> a pending question like "what's the next greater element to your right?"</p>
+
+  <div class="why">Why O(n) despite the inner while-loop: each index is pushed once and popped at
+  most once, so total pops ≤ n. That amortised argument — "n pushes, n pops" — is the thing to
+  say aloud; it's the same shape as the sliding-window linearity proof.</div>
+
+  <h2>The monotonic-stack template</h2>
+<pre><code>// Next greater element to the right, for each index.
+int[] res = new int[n];
+Arrays.fill(res, -1);
+Deque&lt;Integer&gt; stack = new ArrayDeque&lt;&gt;();   // holds INDICES, values decreasing
+for (int i = 0; i &lt; n; i++) {
+    while (!stack.isEmpty() &amp;&amp; a[i] &gt; a[stack.peek()]) {
+        res[stack.pop()] = a[i];   // a[i] is the next greater for the popped index
+    }
+    stack.push(i);
+}
+// indices left on the stack have no greater element → stay -1</code></pre>
+  <p>Flip the comparison for next-smaller; iterate right-to-left for "previous" variants. Store
+  indices (not values) so you can also compute distances/widths.</p>
+
+  <div class="signal">
+    <strong>Pattern signals.</strong> <em>"next/previous greater or smaller element"</em>,
+    <em>"how many days until warmer"</em>, <em>"largest rectangle"</em>, <em>"valid
+    parentheses"</em>, <em>"evaluate/parse nested structure"</em>, anything where the most
+    recent unresolved item is the one you act on first (LIFO).
+  </div>
+
+  <h2>Check your model first</h2>
+  <div class="quiz" id="quiz"></div>
+
+  <h2>Drill — three problems</h2>
+
+  <h3>Drill 1 — plain stack, matching <span class="lc">LeetCode 20 · Valid Parentheses</span></h3>
+  <p>Given a string of <code>()[]{}</code>, decide if every bracket is correctly closed and
+  nested.</p>
+  <details><summary>Hint</summary>
+    <p>Push opening brackets. On a closer, the top must be its matching opener — else invalid.
+    The stack must be empty at the end.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public boolean isValid(String s) {
+    Deque&lt;Character&gt; st = new ArrayDeque&lt;&gt;();
+    Map&lt;Character,Character&gt; close = Map.of(')','(', ']','[', '}','{');
+    for (char c : s.toCharArray()) {
+        if (close.containsKey(c)) {
+            if (st.isEmpty() || st.pop() != close.get(c)) return false;
+        } else {
+            st.push(c);
+        }
+    }
+    return st.isEmpty();
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(n). Insight: mapping closer→opener lets one branch handle all
+    three bracket types — cleaner than three nested conditions.</p>
+  </details>
+
+  <h3>Drill 2 — monotonic stack <span class="lc">LeetCode 739 · Daily Temperatures</span></h3>
+  <p>For each day, how many days until a warmer temperature? 0 if none.</p>
+  <details><summary>Hint</summary>
+    <p>Decreasing monotonic stack of <em>indices</em>. When today is warmer than the day at the
+    top, pop it — today is its answer, and the distance is <code>i − poppedIndex</code>.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int[] dailyTemperatures(int[] t) {
+    int n = t.length;
+    int[] res = new int[n];
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();   // indices, temps decreasing
+    for (int i = 0; i &lt; n; i++) {
+        while (!st.isEmpty() &amp;&amp; t[i] &gt; t[st.peek()]) {
+            int j = st.pop();
+            res[j] = i - j;
+        }
+        st.push(i);
+    }
+    return res;
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(n). Insight: storing indices (not temps) is what lets you
+    recover the <em>distance</em> — a recurring reason to push indices.</p>
+  </details>
+
+  <h3>Drill 3 — the "hard" <span class="lc">LeetCode 84 · Largest Rectangle in Histogram</span></h3>
+  <p>Given bar heights, find the area of the largest axis-aligned rectangle.</p>
+  <details><summary>Hint</summary>
+    <p>Increasing monotonic stack of indices. When a shorter bar arrives, pop taller bars; each
+    popped bar's rectangle extends from the new bar's left back to the element below it on the
+    stack. Use a sentinel of height 0 at the end to flush.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int largestRectangleArea(int[] h) {
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();   // indices, heights increasing
+    int best = 0, n = h.length;
+    for (int i = 0; i &lt;= n; i++) {
+        int cur = (i == n) ? 0 : h[i];        // sentinel flushes the stack
+        while (!st.isEmpty() &amp;&amp; cur &lt; h[st.peek()]) {
+            int height = h[st.pop()];
+            int leftBound = st.isEmpty() ? -1 : st.peek();
+            int width = i - leftBound - 1;
+            best = Math.max(best, height * width);
+        }
+        st.push(i);
+    }
+    return best;
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(n). Insight: when you pop bar <code>j</code>, its width spans
+    from the current index back to the new stack top — both bounds are the first <em>shorter</em>
+    bars on each side. Articulating that width formula is the interview crux.</p>
+  </details>
+
+  <div class="panel">
+    <h3>Primary source</h3>
+    <p>▸ <a href="https://cp-algorithms.com/data_structures/stack_queue_modification.html">cp-algorithms
+    — Stack / monotonic structures</a>, and <a href="https://neetcode.io/practice">NeetCode —
+    Stack</a> for the histogram walkthrough on video.</p>
+  </div>
+
+  <div class="ask">
+    <strong>Next, in order.</strong> Do these, then say <em>"more stacks"</em> for
+    <a href="0014-stacks-more-problems.html">Lesson 0014</a>, then the interleaving set. The
+    histogram width formula is the usual sticking point — ask me to trace it on a small array.
+  </div>
+
+  <footer>
+    <strong>Lesson 0013</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0014-stacks-more-problems.html">More Stack Problems</a> →<br>
+    <a href="../index.html">Course home</a> · <a href="0012-interleaving-binary-search.html">← Interleaving 0012</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 13;
+const QUESTIONS = [
+  {
+    q: "1. Why is a monotonic-stack sweep O(n) despite the inner while-loop?",
+    options: [
+      {t:"Each index is pushed and popped once", ok:true},
+      {t:"The stack never holds two items", ok:false},
+      {t:"The input is assumed already sorted", ok:false},
+      {t:"Binary search bounds each inner loop", ok:false}
+    ],
+    good:"Right — n pushes and at most n pops total, so the amortised cost across the scan is linear.",
+    bad:"It's amortised: every index enters once and leaves once, so total pops ≤ n → O(n) overall."
+  },
+  {
+    q: "2. For 'next greater element to the right,' the stack should be:",
+    options: [
+      {t:"Decreasing, popping when current is larger", ok:true},
+      {t:"Increasing, popping when current is smaller", ok:false},
+      {t:"Sorted ascending and never popped early", ok:false},
+      {t:"A min-heap keyed on the element value", ok:false}
+    ],
+    good:"Right — keep values decreasing; a larger arrival resolves everything smaller below it.",
+    bad:"Use a decreasing stack: when the current value exceeds the top, that current is its next-greater."
+  },
+  {
+    q: "3. Why push indices rather than values onto the stack?",
+    options: [
+      {t:"To recover distances and widths", ok:true},
+      {t:"To save memory versus storing ints", ok:false},
+      {t:"To keep the values fully sorted", ok:false},
+      {t:"To allow duplicate values safely", ok:false}
+    ],
+    good:"Right — indices let you compute spans like i−j (days, widths); the value is just a[index].",
+    bad:"Indices give you positions, so you can compute distances/widths; you still read the value via a[index]."
+  },
+  {
+    q: "4. Which task is a plain stack, NOT a monotonic one?",
+    options: [
+      {t:"Validating nested bracket strings", ok:true},
+      {t:"Next greater element to the right", ok:false},
+      {t:"Largest rectangle in a histogram", ok:false},
+      {t:"Days until a warmer temperature", ok:false}
+    ],
+    good:"Right — bracket matching needs LIFO nesting, not order maintenance; the others are monotonic.",
+    bad:"Bracket validation is plain LIFO matching. The other three rely on a monotonic ordering invariant."
+  }
+];
+</script>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

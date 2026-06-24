@@ -1,0 +1,89 @@
+/* Shared styles for the DSA for L6/L7 Interviews course */
+:root{
+  --ink:#1a1a1a; --soft:#5c5c5c; --rule:#d8d4c8; --bg:#fdfcf8;
+  --accent:#7a1f1f; --good:#1e6b3a; --bad:#9a2b2b;
+  --code-bg:#f4f1e8; --panel:#f7f4ec; --kbd:#ece8db; --gold:#e6d98a;
+}
+*{box-sizing:border-box}
+html{font-size:17px}
+body{
+  margin:0 auto; max-width:44rem; padding:1.4rem 1.5rem 5rem;
+  background:var(--bg); color:var(--ink);
+  font-family:Charter,"Iowan Old Style",Georgia,serif; line-height:1.6;
+}
+body.wide{max-width:50rem}
+
+/* top nav / home link */
+.topnav{display:flex; justify-content:space-between; align-items:center;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.72rem;
+  letter-spacing:.08em; padding-bottom:.9rem; margin-bottom:1.6rem; border-bottom:1px solid var(--rule)}
+.topnav a{color:var(--accent); text-decoration:none}
+.topnav a:hover{text-decoration:underline}
+.topnav .home::before{content:"\2190  "}
+
+.eyebrow{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.72rem;
+  text-transform:uppercase; letter-spacing:.18em; color:var(--accent); margin:0 0 .4rem}
+h1{font-size:2rem; line-height:1.12; margin:0 0 .6rem; letter-spacing:-.015em}
+.lede{font-size:1.08rem; color:var(--soft); margin:0 0 1.2rem}
+h2{font-size:1.25rem; margin:2.6rem 0 .5rem; padding-bottom:.25rem; border-bottom:1px solid var(--rule)}
+h3{font-size:1rem; margin:1.6rem 0 .3rem}
+p{margin:.6rem 0}
+ul,ol{margin:.5rem 0 .8rem}
+li{margin:.25rem 0}
+a{color:var(--accent)}
+
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.84em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px}
+pre{background:var(--code-bg); border:1px solid var(--rule); border-radius:6px;
+  padding:.9rem 1rem; overflow-x:auto; font-size:.8rem; line-height:1.5}
+pre code{background:none; padding:0; font-size:1em}
+
+table{border-collapse:collapse; width:100%; margin:.6rem 0; font-size:.82rem}
+th,td{text-align:left; padding:.4rem .5rem; border-bottom:1px solid var(--rule); vertical-align:top}
+th{font-family:ui-monospace,Menlo,monospace; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--soft)}
+td code{font-size:.8rem}
+
+.panel{background:var(--panel); border:1px solid var(--rule); border-radius:8px; padding:1rem 1.2rem; margin:1.2rem 0}
+.panel h3{margin-top:0}
+.why{border-left:3px solid var(--accent); padding:.4rem 0 .4rem 1rem; margin:1rem 0; color:var(--soft); font-style:italic}
+.signal{background:#fffbe9; border:1px solid var(--gold); border-radius:8px; padding:.8rem 1.1rem; margin:1.2rem 0}
+.note{font-size:.85rem; color:var(--soft); font-style:italic}
+.cx{font-family:ui-monospace,Menlo,monospace; font-size:.78rem; color:var(--soft); margin:.4rem 0}
+.lc{font-family:ui-monospace,Menlo,monospace; font-size:.72rem; background:var(--kbd); border-radius:3px; padding:.1em .45em; color:var(--soft)}
+.tag{display:inline-block; background:var(--kbd); border-radius:3px; padding:.05em .4em; font-family:ui-monospace,Menlo,monospace; font-size:.72rem}
+
+/* quiz */
+.quiz{background:var(--panel); border:1px solid var(--rule); border-radius:8px; padding:1rem 1.2rem; margin:1.4rem 0}
+.quiz .q{font-weight:600; margin:.2rem 0 .7rem}
+.opt{display:block; width:100%; text-align:left; font:inherit; font-size:.9rem;
+  background:#fff; border:1px solid var(--rule); border-radius:6px; padding:.55rem .8rem; margin:.4rem 0; cursor:pointer; transition:.12s}
+.opt:hover{border-color:var(--accent)}
+.opt.correct{background:#e7f3ec; border-color:var(--good); color:var(--good); font-weight:600}
+.opt.wrong{background:#f6e7e7; border-color:var(--bad); color:var(--bad)}
+.fb{font-size:.85rem; margin-top:.5rem; min-height:1.2em}
+.fb.show-good{color:var(--good)} .fb.show-bad{color:var(--bad)}
+
+details{margin:.6rem 0; border:1px solid var(--rule); border-radius:6px; padding:.2rem .9rem; background:#fff}
+summary{cursor:pointer; font-weight:600; font-size:.92rem; padding:.5rem 0; color:var(--accent)}
+details[open]{padding-bottom:.8rem}
+
+.ask{background:var(--accent); color:#fff; border-radius:8px; padding:.9rem 1.1rem; margin:2rem 0; font-size:.95rem}
+.ask strong{color:#fff}
+.ask a{color:#fff}
+footer{margin-top:3.5rem; padding-top:1.2rem; border-top:2px solid var(--rule); font-size:.9rem; color:var(--soft)}
+footer a{color:var(--accent)}
+
+/* index / course home */
+.module{border:1px solid var(--rule); border-radius:8px; padding:1rem 1.2rem; margin:1rem 0; background:#fff}
+.module h3{margin:0 0 .3rem; font-size:1.05rem}
+.module .steps{list-style:none; margin:.5rem 0 0; padding:0}
+.module .steps li{display:flex; align-items:baseline; gap:.6rem; padding:.28rem 0; font-size:.9rem; border-top:1px dotted var(--rule)}
+.module .steps li:first-child{border-top:none}
+.badge{font-family:ui-monospace,Menlo,monospace; font-size:.62rem; text-transform:uppercase; letter-spacing:.1em;
+  padding:.12em .5em; border-radius:99px; white-space:nowrap}
+.badge.done{background:#e7f3ec; color:var(--good)}
+.badge.now{background:#fffbe9; color:#8a6d00; border:1px solid var(--gold)}
+.badge.next{background:var(--kbd); color:var(--soft)}
+.steplabel{font-family:ui-monospace,Menlo,monospace; font-size:.68rem; color:var(--soft); width:5.2rem; flex:none}
+
+@media print{ body{background:#fff} .opt{cursor:default} details{break-inside:avoid} .topnav{display:none} }
