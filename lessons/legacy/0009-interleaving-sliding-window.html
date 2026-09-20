@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0009 · Interleaving — Windows + Pointers + Hashing</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0010-binary-search.html">Next lesson: Binary Search &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0009 · Interleaving</p>
+  <h1>Mixed Retrieval — Sliding Window + Two Pointers + Hashing</h1>
+  <p class="lede">Three patterns now overlap on contiguous-array problems. The skill is the cold first read.</p>
+
+  <div class="panel">
+    <strong>Do this after a 2–3 day gap</strong> from Lessons 0007–0008. All three tools touch
+    arrays and substrings; the trap is grabbing a window when the data isn't contiguous, or
+    isn't monotonic. Train the <em>discrimination</em>, not the mechanics.
+  </div>
+
+  <h2>The decision fork to internalise</h2>
+  <table>
+    <tr><th>Signal</th><th>Reach for</th></tr>
+    <tr><td>Longest/shortest CONTIGUOUS run, positive/count constraint</td><td>Sliding window</td></tr>
+    <tr><td>Contiguous sum with NEGATIVES</td><td>Prefix sum + hash map</td></tr>
+    <tr><td>Sorted array, pair/triplet, O(1) space</td><td>Converging two pointers</td></tr>
+    <tr><td>"Seen it?" / counts / group-by, order irrelevant</td><td>Hash set / map</td></tr>
+    <tr><td>In-place compaction / partition</td><td>Fast/slow pointers</td></tr>
+    <tr><td>Permutation/anagram of a fixed string inside another</td><td>Fixed-size count window</td></tr>
+  </table>
+
+  <h2>Drill — name the tool, cold</h2>
+  <p>State the approach <em>and</em> its complexity in under 30 seconds, then check.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <h2>Debrief</h2>
+  <p>The sharpest distinction here: <strong>contiguous + monotonic → window</strong>;
+  <strong>contiguous + negatives → prefix-sum + map</strong>; <strong>not contiguous →
+  sort/hash</strong>. If an interviewer slips a negative number into a "longest subarray sum"
+  problem, naming why the window breaks is the Staff-level signal.</p>
+
+  <div class="ask">
+    <strong>Hesitated anywhere?</strong> Tell me which items and I'll generate a fresh mixed
+    set targeting those. Otherwise, on to <strong><a href="0010-binary-search.html">Lesson 0010 ·
+    Binary Search</a></strong> — including the under-taught "binary search on the answer space."
+  </div>
+
+  <footer>
+    <strong>Lesson 0009</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0010-binary-search.html">Lesson 0010 · Binary Search</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0008-sliding-window-more-problems.html">← More Sliding Window</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 9;
+const QUESTIONS = [
+  {
+    q: "1. Longest substring with no repeating characters.",
+    options: [
+      {t:"Variable window with a seen map", ok:true},
+      {t:"Sort the string then scan once", ok:false},
+      {t:"Converge pointers from both ends", ok:false},
+      {t:"Prefix sums stored in a hashmap", ok:false}
+    ],
+    good:"Right — contiguous + constraint → variable window; map last index, jump left past dupes. O(n).",
+    bad:"It's contiguous with a constraint → variable window plus a last-seen map. O(n)."
+  },
+  {
+    q: "2. Count subarrays summing to k, with negative numbers present.",
+    options: [
+      {t:"Prefix sums stored in a hashmap", ok:true},
+      {t:"Variable sliding window on sum", ok:false},
+      {t:"Converge pointers from both ends", ok:false},
+      {t:"Two heaps tracking the median", ok:false}
+    ],
+    good:"Yes — negatives break monotonicity, so a window fails; prefix[i]−prefix[j]=k via count map. O(n).",
+    bad:"Negatives kill the window. Use prefix sums + a count map of how often each prefix occurred. O(n)."
+  },
+  {
+    q: "3. Smallest substring of s containing all chars of t.",
+    options: [
+      {t:"Variable window with need counts", ok:true},
+      {t:"Sort both strings then compare", ok:false},
+      {t:"Converge pointers from both ends", ok:false},
+      {t:"Binary search the window length", ok:false}
+    ],
+    good:"Right — grow to cover all needs, shrink while still valid; track a missing counter. O(n).",
+    bad:"It's the need-all-counts window: expand to satisfy, shrink while valid, record smallest. O(n)."
+  },
+  {
+    q: "4. Does s2 contain any permutation of s1 as a substring?",
+    options: [
+      {t:"Fixed window comparing count arrays", ok:true},
+      {t:"Hash every substring of length one", ok:false},
+      {t:"Converge pointers from both ends", ok:false},
+      {t:"Sort s2 and then scan it once", ok:false}
+    ],
+    good:"Yes — slide a window of len(s1), keep 26 counts, compare to target each step. O(n).",
+    bad:"A permutation means equal counts → fixed-size count window over s2, compare arrays. O(n)."
+  },
+  {
+    q: "5. Two numbers summing to target in a SORTED array, indices needed.",
+    options: [
+      {t:"Converging pointers from both ends", ok:true},
+      {t:"Variable sliding window on the sum", ok:false},
+      {t:"Hash each value to its own index", ok:false},
+      {t:"Fixed window of size exactly two", ok:false}
+    ],
+    good:"Right — already sorted, so converge: sum too big move right in, too small move left in. O(n), O(1).",
+    bad:"Sorted + pair → converging two pointers; adjust the end whose move corrects the sum. O(n), O(1)."
+  },
+  {
+    q: "6. Max sum of any contiguous subarray of fixed length k.",
+    options: [
+      {t:"Fixed window with a running sum", ok:true},
+      {t:"Sort the array then take top k", ok:false},
+      {t:"Converge pointers from both ends", ok:false},
+      {t:"Hash each prefix sum you compute", ok:false}
+    ],
+    good:"Right — slide a length-k window: add the entering value, drop the leaving one. O(n), O(1).",
+    bad:"Fixed length + contiguous → fixed window; maintain sum via +a[r]−a[r−k]. O(n), O(1)."
+  }
+];
+</script>
+<script src="../../assets/quiz.js"></script>
+</body>
+</html>

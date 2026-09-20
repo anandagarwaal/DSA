@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0021 · Interleaving — Trees + Prior Patterns</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0022-heaps-top-k.html">Next lesson: Heaps &amp; Top-K &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0021 · Interleaving</p>
+  <h1>Mixed Retrieval — Trees + Lists + Stacks + Search + Windows + Pointers + Hashing</h1>
+  <p class="lede">Seven tools. The new axis: recursive structure (trees) vs linear structure (everything prior).</p>
+
+  <div class="panel">
+    <strong>Do this after a 2–3 day gap</strong> from Lessons 0019–0020. The skill is picking the
+    traversal fast — BFS vs DFS, and which DFS order — and recognising when a tree problem is really
+    a search (BST) or a hashing problem in disguise.
+  </div>
+
+  <h2>The decision fork to internalise</h2>
+  <table>
+    <tr><th>Signal</th><th>Reach for</th></tr>
+    <tr><td>Bottom-up tree property (height, diameter, balance)</td><td>DFS postorder + global</td></tr>
+    <tr><td>Level-by-level / min depth / right view</td><td>BFS (freeze level size)</td></tr>
+    <tr><td>Sorted order or search in a BST</td><td>Inorder DFS / BST bounds</td></tr>
+    <tr><td>Node list: middle, cycle, reorder</td><td>Fast/slow + dummy + reversal</td></tr>
+    <tr><td>Next/previous greater; nested matching</td><td>Stack</td></tr>
+    <tr><td>"Min/max value such that feasible"; sorted lookup</td><td>Binary search</td></tr>
+    <tr><td>"Seen it?" / counts / group-by</td><td>Hash set / map</td></tr>
+  </table>
+
+  <h2>Drill — name the tool, cold</h2>
+  <p>State the approach <em>and</em> its complexity in under 30 seconds, then check.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <h2>Debrief</h2>
+  <p>For trees, the first fork is BFS vs DFS; the second is which DFS order. "Compute a property"
+  is almost always postorder with a global best. "Shortest/level" is BFS. A BST adds the
+  inorder-is-sorted and bounds tricks. If a problem says "BST," that's a hint to exploit ordering
+  rather than scan all nodes — naming that is the Staff signal.</p>
+
+  <div class="ask">
+    <strong>Hesitated anywhere?</strong> Tell me which items and I'll generate a targeted set.
+    Otherwise, on to <strong><a href="0022-heaps-top-k.html">Lesson 0022 · Heaps &amp; Top-K</a></strong>
+    — the priority-queue patterns behind "k largest", "merge k", and streaming medians.
+  </div>
+
+  <footer>
+    <strong>Lesson 0021</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0022-heaps-top-k.html">Lesson 0022 · Heaps &amp; Top-K</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0020-trees-more-problems.html">← More Trees</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 21;
+const QUESTIONS = [
+  {
+    q: "1. Find the minimum depth from root to any leaf, as fast as possible.",
+    options: [
+      {t:"BFS, stopping at the first leaf", ok:true},
+      {t:"DFS postorder over all nodes", ok:false},
+      {t:"Inorder traversal of the tree", ok:false},
+      {t:"Binary search on the depth value", ok:false}
+    ],
+    good:"Right — BFS reaches the shallowest leaf first, so it can stop early; DFS must explore subtrees.",
+    bad:"It's a level-distance question → BFS finds the nearest leaf first and can return immediately."
+  },
+  {
+    q: "2. Validate that a binary tree obeys the BST ordering property.",
+    options: [
+      {t:"DFS passing down low and high bounds", ok:true},
+      {t:"BFS comparing each node to its parent", ok:false},
+      {t:"Hash all values then sort and check", ok:false},
+      {t:"Converging pointers over the values", ok:false}
+    ],
+    good:"Right — each node must fall within ancestor bounds, so thread (low, high) down the recursion.",
+    bad:"Parent-only checks miss distant violations. Pass (low, high) bounds down via DFS, or inorder-check sortedness."
+  },
+  {
+    q: "3. Lowest common ancestor of two nodes in a general binary tree.",
+    options: [
+      {t:"Postorder bubbling up found nodes", ok:true},
+      {t:"BFS level order from the root", ok:false},
+      {t:"Binary search between the two nodes", ok:false},
+      {t:"Sliding window over a traversal", ok:false}
+    ],
+    good:"Right — recurse; the node receiving a hit from both subtrees is the split point, the LCA.",
+    bad:"Use postorder: each call reports if it found p or q; the first node seeing both sides is the LCA."
+  },
+  {
+    q: "4. Count subarrays of an array summing to k, with negatives present.",
+    options: [
+      {t:"Prefix sums stored in a hashmap", ok:true},
+      {t:"DFS over an implicit tree of sums", ok:false},
+      {t:"BFS across the array indices", ok:false},
+      {t:"Inorder traversal of a built BST", ok:false}
+    ],
+    good:"Right — it's a flat array, not a tree; negatives force prefix sums + a count map. O(n).",
+    bad:"Don't overthink it as a tree: it's an array, negatives present → prefix sums + count map. O(n)."
+  },
+  {
+    q: "5. Return the kth smallest value in a binary search tree.",
+    options: [
+      {t:"Inorder traversal, stop at the kth", ok:true},
+      {t:"BFS level order counting nodes", ok:false},
+      {t:"Binary search the value range", ok:false},
+      {t:"Max-heap of the first k values", ok:false}
+    ],
+    good:"Right — inorder visits a BST in ascending order, so the kth visited node is the answer. O(h+k).",
+    bad:"Inorder on a BST yields sorted values; count visits and stop at the kth. O(h + k)."
+  },
+  {
+    q: "6. Serialize a binary tree to a string and reconstruct it later.",
+    options: [
+      {t:"Preorder DFS with null markers", ok:true},
+      {t:"BFS storing only the leaf values", ok:false},
+      {t:"Hash each subtree to an id", ok:false},
+      {t:"Inorder alone without any markers", ok:false}
+    ],
+    good:"Right — preorder plus explicit nulls is uniquely decodable; decode in the same order. O(n).",
+    bad:"You need preorder with null markers to make it unambiguous; inorder alone can't pin structure."
+  }
+];
+</script>
+<script src="../../assets/quiz.js"></script>
+</body>
+</html>

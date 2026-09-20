@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0006 · Interleaving — Hashing + Two Pointers</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0007-sliding-window.html">Next lesson: Sliding Window &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0006 · Interleaving</p>
+  <h1>Mixed Retrieval — Hashing + Two Pointers</h1>
+  <p class="lede">Now the two patterns compete. The skill is choosing correctly under a cold read.</p>
+
+  <div class="panel">
+    <strong>Do this after a 2–3 day gap</strong> from Lessons 0004–0005. You now own two tools
+    that often apply to the <em>same-looking</em> problem — pair sums, in-place edits, dedup.
+    Telling them apart fast is exactly the interview skill.
+  </div>
+
+  <h2>The decision fork to internalise</h2>
+  <table>
+    <tr><th>Signal</th><th>Reach for</th></tr>
+    <tr><td>Unsorted + need original indices</td><td>Hash map (value → index)</td></tr>
+    <tr><td>Sorted + want O(1) extra space</td><td>Converging two pointers</td></tr>
+    <tr><td>"Have I seen it?" / counts / group-by</td><td>Hash set / map</td></tr>
+    <tr><td>In-place rewrite / dedup / partition</td><td>Fast/slow pointers</td></tr>
+    <tr><td>Subarray sum with negatives</td><td>Prefix sum + map</td></tr>
+    <tr><td>Pair/triplet on sortable data, no index need</td><td>Sort + two pointers</td></tr>
+  </table>
+
+  <h2>Drill — name the tool, cold</h2>
+  <p>Say the approach and its complexity in under 30 seconds, then check.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <h2>Debrief</h2>
+  <p>The recurring trap: a problem "smells" like a hash map, but a sort + two pointers is
+  cheaper in space — or vice versa, where sorting would destroy the indices you must return.
+  Verbalising that tradeoff is the Staff-level signal.</p>
+
+  <div class="ask">
+    <strong>Hesitated anywhere?</strong> Tell me which items and I'll generate a fresh mixed
+    set targeting those. Otherwise, on to <strong><a href="0007-sliding-window.html">Lesson 0007
+    · Sliding Window</a></strong> — the natural next step, since a window <em>is</em> two pointers
+    moving the same direction with a running aggregate.
+  </div>
+
+  <footer>
+    <strong>Lesson 0006</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0007-sliding-window.html">Lesson 0007 · Sliding Window</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0005-two-pointers-more-problems.html">← More Two-Pointer Problems</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 6;
+const QUESTIONS = [
+  {
+    q: "1. Pair summing to target in an UNSORTED array — return their indices.",
+    options: [
+      {t:"Hash map of value to index", ok:true},
+      {t:"Sort then converge from ends", ok:false},
+      {t:"Fast and slow write pointers", ok:false},
+      {t:"Three way partition the array", ok:false}
+    ],
+    good:"Right — sorting would lose the indices you must return; hash value→index, look up the complement. O(n).",
+    bad:"Sorting destroys original indices. Hash value→index and check target−x as you scan. O(n)."
+  },
+  {
+    q: "2. Triplets summing to zero, output values only (no indices).",
+    options: [
+      {t:"Sort then converge inner pointers", ok:true},
+      {t:"Hash every pair you encounter", ok:false},
+      {t:"Single prefix sum traversal", ok:false},
+      {t:"Min heap of triplet sums", ok:false}
+    ],
+    good:"Yes — sort, fix one element, converge two pointers on the rest; skip dups. O(n^2), O(1) space.",
+    bad:"Indices aren't needed, so sort + fix-one + two pointers is cleanest: O(n^2) time, O(1) space."
+  },
+  {
+    q: "3. Remove duplicates from a SORTED array, in place, O(1) space.",
+    options: [
+      {t:"Lagging fast slow write pointer", ok:true},
+      {t:"Hash set of seen values", ok:false},
+      {t:"Converge from both array ends", ok:false},
+      {t:"Sort again then copy out", ok:false}
+    ],
+    good:"Correct — a slow write pointer copies each new value; sortedness makes equal values adjacent. O(1) space.",
+    bad:"A set costs O(n) space. Sorted + in-place → lagging write pointer, O(1) space."
+  },
+  {
+    q: "4. Count subarrays summing to k, array contains negatives.",
+    options: [
+      {t:"Prefix sums stored in map", ok:true},
+      {t:"Converging two pointer window", ok:false},
+      {t:"Fast slow pointer rewrite", ok:false},
+      {t:"Sort then binary search it", ok:false}
+    ],
+    good:"Yes — negatives kill the window; prefix[i]−prefix[j]=k via a count map. O(n).",
+    bad:"Negatives break any window. It's prefix-sum + a count map, O(n) — a hashing problem, not two pointers."
+  },
+  {
+    q: "5. Most water between two vertical lines (maximise area).",
+    options: [
+      {t:"Converge moving the shorter line", ok:true},
+      {t:"Hash heights to their indices", ok:false},
+      {t:"Prefix maxima from both ends", ok:false},
+      {t:"Sort the heights then scan", ok:false}
+    ],
+    good:"Right — area is capped by the shorter line, so move it inward. Converging two pointers, O(n), O(1).",
+    bad:"This is greedy converging two pointers: always move the shorter line inward. O(n), O(1)."
+  }
+];
+</script>
+<script src="../../assets/quiz.js"></script>
+</body>
+</html>

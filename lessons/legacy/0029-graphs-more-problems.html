@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0029 · More Graph Problems</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0030-interleaving-graphs.html">Next: Interleaving &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0029 · Graphs — Reps</p>
+  <h1>More Graph Problems</h1>
+  <p class="lede">Four reps: multi-source BFS, clone via hashmap, topo order output, and Dijkstra for weighted shortest paths.</p>
+
+  <p>From <a href="0028-graphs.html">Lesson 0028</a> you have BFS, DFS, Kahn's topo sort, and
+  union-find. These reps add three high-value variations: <strong>multi-source BFS</strong> (seed
+  the queue with many starts), <strong>graph cloning</strong> (old→new hashmap), and
+  <strong>Dijkstra</strong> (a heap-ordered BFS for weighted edges) — where the heap module meets
+  the graph module.</p>
+
+  <h3>Drill 1 — multi-source BFS <span class="lc">LeetCode 994 · Rotting Oranges</span></h3>
+  <p>Each minute, rotten oranges rot 4-adjacent fresh ones. Return minutes until none are fresh (or -1).</p>
+  <details><summary>Hint</summary>
+    <p>Seed the BFS queue with <em>all</em> rotten cells at once (time 0). Each BFS level is one
+    minute. Track remaining fresh count; if any remain when the queue empties, return -1.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int orangesRotting(int[][] g) {
+    Queue&lt;int[]&gt; q = new LinkedList&lt;&gt;();
+    int fresh = 0, m = g.length, n = g[0].length;
+    for (int r = 0; r &lt; m; r++) for (int c = 0; c &lt; n; c++) {
+        if (g[r][c] == 2) q.offer(new int[]{r, c});
+        else if (g[r][c] == 1) fresh++;
+    }
+    int[][] D = {{1,0},{-1,0},{0,1},{0,-1}};
+    int mins = 0;
+    while (!q.isEmpty() &amp;&amp; fresh &gt; 0) {
+        mins++;
+        for (int i = q.size(); i &gt; 0; i--) {
+            int[] cell = q.poll();
+            for (int[] d : D) {
+                int r = cell[0]+d[0], c = cell[1]+d[1];
+                if (r&gt;=0 &amp;&amp; c&gt;=0 &amp;&amp; r&lt;m &amp;&amp; c&lt;n &amp;&amp; g[r][c]==1) {
+                    g[r][c] = 2; fresh--; q.offer(new int[]{r, c});
+                }
+            }
+        }
+    }
+    return fresh == 0 ? mins : -1;
+}</code></pre>
+    <p class="cx">Time O(m·n) · Space O(m·n). Insight: seeding the queue with every source makes the
+    BFS frontier expand from all rot points simultaneously — the level count is the answer, no
+    per-source reruns.</p>
+  </details>
+
+  <h3>Drill 2 — clone with a map <span class="lc">LeetCode 133 · Clone Graph</span></h3>
+  <p>Deep-copy a connected undirected graph given a node reference.</p>
+  <details><summary>Hint</summary>
+    <p>DFS (or BFS) with a hashmap from original node → its clone. The map both stores results and
+    serves as the visited set, breaking cycles.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>private Map&lt;Node, Node&gt; seen = new HashMap&lt;&gt;();
+public Node cloneGraph(Node node) {
+    if (node == null) return null;
+    if (seen.containsKey(node)) return seen.get(node);   // already cloned → break cycle
+    Node copy = new Node(node.val);
+    seen.put(node, copy);                                // record BEFORE recursing
+    for (Node nb : node.neighbors) copy.neighbors.add(cloneGraph(nb));
+    return copy;
+}</code></pre>
+    <p class="cx">Time O(V+E) · Space O(V). Insight: putting the clone in the map <em>before</em>
+    recursing into neighbours is what stops infinite recursion on cycles — the same hashmap is
+    visited-set and output in one.</p>
+  </details>
+
+  <h3>Drill 3 — emit the order <span class="lc">LeetCode 210 · Course Schedule II</span></h3>
+  <p>Return a valid order to take all courses, or an empty array if impossible.</p>
+  <details><summary>Hint</summary>
+    <p>Same Kahn's BFS as Course Schedule, but append each popped node to an output list. If the
+    list reaches <code>n</code> entries, it's a valid topological order; otherwise return empty.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int[] findOrder(int n, int[][] prereqs) {
+    List&lt;List&lt;Integer&gt;&gt; adj = new ArrayList&lt;&gt;();
+    for (int i = 0; i &lt; n; i++) adj.add(new ArrayList&lt;&gt;());
+    int[] indeg = new int[n];
+    for (int[] p : prereqs) { adj.get(p[1]).add(p[0]); indeg[p[0]]++; }
+    Queue&lt;Integer&gt; q = new LinkedList&lt;&gt;();
+    for (int i = 0; i &lt; n; i++) if (indeg[i] == 0) q.offer(i);
+    int[] order = new int[n]; int k = 0;
+    while (!q.isEmpty()) {
+        int u = q.poll(); order[k++] = u;
+        for (int v : adj.get(u)) if (--indeg[v] == 0) q.offer(v);
+    }
+    return k == n ? order : new int[0];        // incomplete ⇒ cycle ⇒ no order
+}</code></pre>
+    <p class="cx">Time O(V+E) · Space O(V+E). Insight: topo sort and cycle detection are the
+    <em>same</em> algorithm — the order falls out of the process, and a short order signals a cycle.</p>
+  </details>
+
+  <h3>Drill 4 — weighted shortest path <span class="lc">LeetCode 743 · Network Delay Time</span></h3>
+  <p>Time for a signal from node <code>k</code> to reach all <code>n</code> nodes across weighted edges.</p>
+  <details><summary>Hint</summary>
+    <p>Dijkstra: a min-heap ordered by distance-so-far. Pop the closest unsettled node, relax its
+    edges. The answer is the max finalized distance (or -1 if any node is unreachable).</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int networkDelayTime(int[][] times, int n, int k) {
+    Map&lt;Integer, List&lt;int[]&gt;&gt; adj = new HashMap&lt;&gt;();
+    for (int[] t : times) adj.computeIfAbsent(t[0], x -&gt; new ArrayList&lt;&gt;())
+                              .add(new int[]{t[1], t[2]});
+    int[] dist = new int[n + 1]; Arrays.fill(dist, Integer.MAX_VALUE); dist[k] = 0;
+    PriorityQueue&lt;int[]&gt; pq = new PriorityQueue&lt;&gt;((a, b) -&gt; a[1] - b[1]);
+    pq.offer(new int[]{k, 0});
+    while (!pq.isEmpty()) {
+        int[] cur = pq.poll(); int u = cur[0], d = cur[1];
+        if (d &gt; dist[u]) continue;            // stale heap entry, skip
+        for (int[] e : adj.getOrDefault(u, List.of())) {
+            int nd = d + e[1];
+            if (nd &lt; dist[e[0]]) { dist[e[0]] = nd; pq.offer(new int[]{e[0], nd}); }
+        }
+    }
+    int ans = 0;
+    for (int i = 1; i &lt;= n; i++) ans = Math.max(ans, dist[i]);
+    return ans == Integer.MAX_VALUE ? -1 : ans;
+}</code></pre>
+    <p class="cx">Time O(E log V) · Space O(V+E). Insight: Dijkstra <em>is</em> BFS with a min-heap
+    instead of a plain queue — the heap always settles the globally-closest node next, which is why
+    it needs non-negative weights. The "stale entry" skip avoids a decrease-key.</p>
+  </details>
+
+  <h2>Self-check</h2>
+  <p>Classify each: multi-source BFS (D1), clone-via-map (D2), Kahn's order (D3), Dijkstra (D4). The
+  two transferable ideas: seed BFS with many sources for "simultaneous spread," and Dijkstra =
+  heap-ordered BFS for weighted graphs — that's where this module fuses with heaps.</p>
+
+  <div class="panel">
+    <h3>Primary source</h3>
+    <p>▸ <a href="https://cp-algorithms.com/graph/dijkstra.html">cp-algorithms — Dijkstra</a> and the
+    broader <a href="https://cp-algorithms.com/">graph section</a>, plus
+    <a href="https://neetcode.io/practice">NeetCode — Graphs / Advanced Graphs</a>.</p>
+  </div>
+
+  <div class="ask">
+    <strong>All four clean?</strong> After a 2–3 day gap, do the
+    <strong><a href="0030-interleaving-graphs.html">Interleaving set</a></strong>. Want
+    <span class="lc">Pacific Atlantic Water Flow</span> or <span class="lc">Word Ladder</span> as
+    extra modelling reps? Ask.
+  </div>
+
+  <footer>
+    <strong>Lesson 0029</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0030-interleaving-graphs.html">Interleaving — Graphs + Prior Patterns</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0028-graphs.html">← Lesson 0028</a>
+  </footer>
+</body>
+</html>

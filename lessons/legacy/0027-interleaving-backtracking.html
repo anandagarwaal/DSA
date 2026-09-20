@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0027 · Interleaving — Backtracking + Prior Patterns</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0028-graphs.html">Next lesson: Graphs &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0027 · Interleaving</p>
+  <h1>Mixed Retrieval — Backtracking + Heaps + Trees + Lists + Stacks + Search + Windows + Pointers + Hashing</h1>
+  <p class="lede">Nine tools. The new axis: enumerate every solution (exponential) vs find/optimise one (polynomial).</p>
+
+  <div class="panel">
+    <strong>Do this after a 2–3 day gap</strong> from Lessons 0025–0026. The skill is the
+    cost-of-output test: if the answer is "list all arrangements," brace for backtracking's
+    exponential fan-out; if it's "how many" or "the best one," a polynomial tool (DP, greedy, search)
+    almost always exists instead.
+  </div>
+
+  <h2>The decision fork to internalise</h2>
+  <table>
+    <tr><th>Signal</th><th>Reach for</th></tr>
+    <tr><td>"All subsets / permutations / combinations / partitions"</td><td>Backtracking (choose/explore/un-choose)</td></tr>
+    <tr><td>"Generate every valid board / arrangement"</td><td>Backtracking with constraint sets</td></tr>
+    <tr><td>"k largest/smallest/closest"; merge k; running median</td><td>Heap</td></tr>
+    <tr><td>Tree property; level order; LCA</td><td>DFS postorder / BFS</td></tr>
+    <tr><td>Next/previous greater; nested matching</td><td>Monotonic stack</td></tr>
+    <tr><td>"Min/max value such that feasible"; sorted lookup</td><td>Binary search</td></tr>
+    <tr><td>Contiguous run under a constraint</td><td>Sliding window</td></tr>
+    <tr><td>Sorted array, pair/triple sums, in-place</td><td>Two pointers</td></tr>
+    <tr><td>"Seen it?" / counts / group-by</td><td>Hash set / map</td></tr>
+  </table>
+
+  <h2>Drill — name the tool, cold</h2>
+  <p>State the approach <em>and</em> its complexity in under 30 seconds, then check.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <h2>Debrief</h2>
+  <p>The backtracking trap is using it when you only need a count or an optimum — that's almost
+  always DP or greedy at polynomial cost, not an exponential enumeration. The second trap is missing
+  the prune: sort-then-skip for duplicates, an early infeasibility return, or constraint sets for
+  O(1) validity. When the problem genuinely wants <em>every</em> solution, backtracking is correct
+  and the exponential output is unavoidable — saying that out loud (and bounding it) is the Staff signal.</p>
+
+  <div class="ask">
+    <strong>Hesitated anywhere?</strong> Tell me which items and I'll generate a targeted set.
+    Otherwise, on to <strong><a href="0028-graphs.html">Lesson 0028 · Graphs</a></strong>
+    — BFS/DFS on adjacency lists, topological sort, and union-find, the backbone of the hardest
+    interview questions.
+  </div>
+
+  <footer>
+    <strong>Lesson 0027</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0028-graphs.html">Lesson 0028 · Graphs</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0026-backtracking-more-problems.html">← More Backtracking</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 27;
+const QUESTIONS = [
+  {
+    q: "1. Return every partition of a string into palindromic substrings.",
+    options: [
+      {t:"Backtracking, cut only at palindromes", ok:true},
+      {t:"Sliding window over the substrings", ok:false},
+      {t:"Min-heap keyed by substring length", ok:false},
+      {t:"Binary search on the cut count", ok:false}
+    ],
+    good:"Right — enumerate cut positions, recursing only when the prefix is a palindrome; that test prunes.",
+    bad:"It asks for ALL partitions → backtracking. The palindrome check is the prune that cuts dead branches."
+  },
+  {
+    q: "2. Count the number of distinct ways to climb n stairs by 1 or 2.",
+    options: [
+      {t:"Dynamic programming, not enumeration", ok:true},
+      {t:"Backtracking over every step path", ok:false},
+      {t:"A size-n min-heap of the paths", ok:false},
+      {t:"Two pointers across the staircase", ok:false}
+    ],
+    good:"Right — it asks how many, not which; that's a DP recurrence in O(n), not exponential enumeration.",
+    bad:"'How many ways' is a count → DP (Fibonacci-style), O(n). Enumerating paths would be needless exponential work."
+  },
+  {
+    q: "3. Place N non-attacking queens; return all valid boards.",
+    options: [
+      {t:"Backtracking with diagonal sets", ok:true},
+      {t:"BFS level order across the rows", ok:false},
+      {t:"Greedy: fill each row's first slot", ok:false},
+      {t:"Hash every board to dedupe it", ok:false}
+    ],
+    good:"Right — one queen per row, attacked col/diag tracked in sets for O(1) checks; classic backtracking.",
+    bad:"Enumerate all boards → backtracking; encode the two diagonals as r-c and r+c for O(1) validity checks."
+  },
+  {
+    q: "4. Largest sum of a contiguous subarray (Kadane's setting).",
+    options: [
+      {t:"One linear pass tracking a running max", ok:true},
+      {t:"Backtracking over all subarrays", ok:false},
+      {t:"Min-heap of every prefix sum", ok:false},
+      {t:"Generate all subsets and compare", ok:false}
+    ],
+    good:"Right — it's an optimum over contiguous runs, solvable in O(n); no enumeration needed.",
+    bad:"Maximum contiguous sum is a single-pass DP (Kadane), O(n). Enumerating subarrays would be wasteful."
+  },
+  {
+    q: "5. Generate all combinations of k numbers chosen from 1..n.",
+    options: [
+      {t:"Backtracking with a start index", ok:true},
+      {t:"Sliding window of width k", ok:false},
+      {t:"Size-k heap of the candidates", ok:false},
+      {t:"Binary search for each member", ok:false}
+    ],
+    good:"Right — choose-from-start recursion, stop when the path reaches length k; start index prevents dupes.",
+    bad:"'All combinations' → backtracking from a start index; record when the path hits size k. Output is C(n,k)."
+  },
+  {
+    q: "6. Find the kth largest element in an unsorted array, once.",
+    options: [
+      {t:"A size-k min-heap over the array", ok:true},
+      {t:"Backtracking over all orderings", ok:false},
+      {t:"Sliding window of width k", ok:false},
+      {t:"Inorder traversal of the values", ok:false}
+    ],
+    good:"Right — a size-k min-heap leaves the kth largest at its root in O(n log k); quickselect is the O(n) rival.",
+    bad:"Single statistic → size-k min-heap (root = kth largest), O(n log k). Backtracking here is wildly overkill."
+  }
+];
+</script>
+<script src="../../assets/quiz.js"></script>
+</body>
+</html>

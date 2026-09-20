@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0026 · More Backtracking Problems</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0027-interleaving-backtracking.html">Next: Interleaving &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0026 · Backtracking — Reps</p>
+  <h1>More Backtracking Problems</h1>
+  <p class="lede">Four reps: combination-sum with reuse, duplicate-skipping, string partitioning, and the N-Queens board.</p>
+
+  <p>From <a href="0025-backtracking.html">Lesson 0025</a> you have choose / explore / un-choose and
+  the subset-vs-permutation fork. These reps add the two hardest sub-skills: <strong>pruning</strong>
+  (cut branches that can't succeed) and <strong>duplicate handling</strong> (sort, then skip equal
+  siblings). State the state-space tree before coding.</p>
+
+  <h3>Drill 1 — reuse allowed <span class="lc">LeetCode 39 · Combination Sum</span></h3>
+  <p>Find all combinations summing to a target; each number may be reused unlimited times.</p>
+  <details><summary>Hint</summary>
+    <p>Recurse with a start index, but pass <code>i</code> (not <code>i+1</code>) so the same number
+    can repeat. Prune when the remaining target goes negative.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public List&lt;List&lt;Integer&gt;&gt; combinationSum(int[] cand, int target) {
+    List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+    backtrack(cand, target, 0, new ArrayList&lt;&gt;(), res);
+    return res;
+}
+private void backtrack(int[] cand, int rem, int start,
+                       List&lt;Integer&gt; path, List&lt;List&lt;Integer&gt;&gt; res) {
+    if (rem == 0) { res.add(new ArrayList&lt;&gt;(path)); return; }
+    if (rem &lt; 0) return;                          // prune: overshot
+    for (int i = start; i &lt; cand.length; i++) {
+        path.add(cand[i]);
+        backtrack(cand, rem - cand[i], i, path, res);  // i, not i+1 → reuse
+        path.remove(path.size() - 1);
+    }
+}</code></pre>
+    <p class="cx">Time O(2^target) worst case · Space O(target/min). Insight: passing <code>i</code>
+    keeps the current element in play (reuse) while <code>start</code> still blocks earlier ones,
+    so each multiset is counted once.</p>
+  </details>
+
+  <h3>Drill 2 — skip duplicates <span class="lc">LeetCode 90 · Subsets II</span></h3>
+  <p>All subsets of an array that <em>may contain duplicates</em> — no duplicate subsets in output.</p>
+  <details><summary>Hint</summary>
+    <p>Sort first. Within one recursion level, skip an element equal to the previous one
+    (<code>i &gt; start &amp;&amp; nums[i] == nums[i-1]</code>) — that collapses sibling branches that
+    would produce identical subsets.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public List&lt;List&lt;Integer&gt;&gt; subsetsWithDup(int[] nums) {
+    Arrays.sort(nums);                           // bring duplicates together
+    List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+    backtrack(nums, 0, new ArrayList&lt;&gt;(), res);
+    return res;
+}
+private void backtrack(int[] nums, int start, List&lt;Integer&gt; path,
+                       List&lt;List&lt;Integer&gt;&gt; res) {
+    res.add(new ArrayList&lt;&gt;(path));
+    for (int i = start; i &lt; nums.length; i++) {
+        if (i &gt; start &amp;&amp; nums[i] == nums[i - 1]) continue;  // skip dup sibling
+        path.add(nums[i]);
+        backtrack(nums, i + 1, path, res);
+        path.remove(path.size() - 1);
+    }
+}</code></pre>
+    <p class="cx">Time O(n·2ⁿ) · Space O(n). Insight: <code>i &gt; start</code> (not <code>i &gt; 0</code>)
+    is critical — it skips duplicates only among <em>siblings</em>, still allowing a value to repeat
+    deeper down a single path. This sort-then-skip idiom recurs everywhere duplicates appear.</p>
+  </details>
+
+  <h3>Drill 3 — partition with a validity test <span class="lc">LeetCode 131 · Palindrome Partitioning</span></h3>
+  <p>Partition a string so every substring is a palindrome; return all such partitions.</p>
+  <details><summary>Hint</summary>
+    <p>The choice at each step is "where to cut next." Try every prefix; if it's a palindrome,
+    recurse on the rest. The cut position is the start index for the next level.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public List&lt;List&lt;String&gt;&gt; partition(String s) {
+    List&lt;List&lt;String&gt;&gt; res = new ArrayList&lt;&gt;();
+    backtrack(s, 0, new ArrayList&lt;&gt;(), res);
+    return res;
+}
+private void backtrack(String s, int start, List&lt;String&gt; path,
+                       List&lt;List&lt;String&gt;&gt; res) {
+    if (start == s.length()) { res.add(new ArrayList&lt;&gt;(path)); return; }
+    for (int end = start + 1; end &lt;= s.length(); end++) {
+        if (isPal(s, start, end - 1)) {          // only valid cuts recurse
+            path.add(s.substring(start, end));
+            backtrack(s, end, path, res);
+            path.remove(path.size() - 1);
+        }
+    }
+}
+private boolean isPal(String s, int i, int j) {
+    while (i &lt; j) if (s.charAt(i++) != s.charAt(j--)) return false;
+    return true;
+}</code></pre>
+    <p class="cx">Time O(n·2ⁿ) · Space O(n). Insight: the palindrome test is the prune — invalid
+    prefixes never recurse, so the branching factor collapses well below the naive 2ⁿ cuts.</p>
+  </details>
+
+  <h3>Drill 4 — constraints on a board <span class="lc">LeetCode 51 · N-Queens</span></h3>
+  <p>Place N queens on an N×N board so none attack each other; return all configurations.</p>
+  <details><summary>Hint</summary>
+    <p>Place one queen per row. Track attacked columns and both diagonals in sets
+    (<code>col</code>, <code>r-c</code>, <code>r+c</code>). Recurse row by row; the sets make each
+    validity check O(1).</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>private List&lt;List&lt;String&gt;&gt; res = new ArrayList&lt;&gt;();
+private Set&lt;Integer&gt; cols = new HashSet&lt;&gt;(), diag = new HashSet&lt;&gt;(), anti = new HashSet&lt;&gt;();
+public List&lt;List&lt;String&gt;&gt; solveNQueens(int n) {
+    place(0, n, new int[n]);
+    return res;
+}
+private void place(int r, int n, int[] queenCol) {
+    if (r == n) { res.add(render(queenCol, n)); return; }
+    for (int c = 0; c &lt; n; c++) {
+        if (cols.contains(c) || diag.contains(r - c) || anti.contains(r + c)) continue;
+        cols.add(c); diag.add(r - c); anti.add(r + c); queenCol[r] = c;     // choose
+        place(r + 1, n, queenCol);                                          // explore
+        cols.remove(c); diag.remove(r - c); anti.remove(r + c);             // un-choose
+    }
+}</code></pre>
+    <p class="cx">Time O(n!) · Space O(n). Insight: encoding the two diagonals as <code>r-c</code>
+    and <code>r+c</code> turns attack-checking into O(1) set lookups — the trick that makes N-Queens
+    a clean backtracking problem rather than a messy one.</p>
+  </details>
+
+  <h2>Self-check</h2>
+  <p>Classify each: reuse via start-stays-at-i (D1), sort-then-skip-siblings for duplicates (D2),
+  validity-pruned partition (D3), constraint-set board placement (D4). The duplicate-skip
+  (<code>i &gt; start</code>) and the diagonal encoding are the two most interview-tested tricks here.</p>
+
+  <div class="panel">
+    <h3>Primary source</h3>
+    <p>▸ <a href="https://neetcode.io/practice">NeetCode — Backtracking</a>, plus the
+    <a href="https://leetcode.com/tag/backtracking/">LeetCode tag</a>.</p>
+  </div>
+
+  <div class="ask">
+    <strong>All four clean?</strong> After a 2–3 day gap, do the
+    <strong><a href="0027-interleaving-backtracking.html">Interleaving set</a></strong>. Want
+    <span class="lc">Combinations</span> or <span class="lc">Generate Parentheses</span> as extra
+    pruning reps? Ask.
+  </div>
+
+  <footer>
+    <strong>Lesson 0026</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0027-interleaving-backtracking.html">Interleaving — Backtracking + Prior Patterns</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0025-backtracking.html">← Lesson 0025</a>
+  </footer>
+</body>
+</html>

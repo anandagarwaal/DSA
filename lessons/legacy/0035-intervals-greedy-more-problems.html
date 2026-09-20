@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0035 · More Intervals &amp; Greedy Problems</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0036-interleaving-final.html">Next: Final Interleaving &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0035 · Intervals &amp; Greedy — Reps</p>
+  <h1>More Intervals &amp; Greedy Problems</h1>
+  <p class="lede">Four reps: insert-and-merge, minimum arrows, the jump game, and gas station — three classic greedy proofs.</p>
+
+  <p>From <a href="0034-intervals-greedy.html">Lesson 0034</a> you have sort-and-sweep and the
+  exchange argument. These reps cover interval insertion, an overlap-counting greedy, and two
+  pure-greedy classics where the <em>proof</em> that the local choice is safe is the whole interview
+  point. Articulate the justification, not just the loop.</p>
+
+  <h3>Drill 1 — insert into sorted intervals <span class="lc">LeetCode 57 · Insert Interval</span></h3>
+  <p>Insert a new interval into a sorted, non-overlapping list and merge as needed.</p>
+  <details><summary>Hint</summary>
+    <p>Three phases: copy intervals strictly before the new one, merge all that overlap it into one,
+    then copy the rest. No full re-sort needed — the input is already sorted.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int[][] insert(int[][] intervals, int[] nw) {
+    List&lt;int[]&gt; out = new ArrayList&lt;&gt;();
+    int i = 0, n = intervals.length;
+    while (i &lt; n &amp;&amp; intervals[i][1] &lt; nw[0]) out.add(intervals[i++]);   // before
+    while (i &lt; n &amp;&amp; intervals[i][0] &lt;= nw[1]) {                         // overlapping
+        nw[0] = Math.min(nw[0], intervals[i][0]);
+        nw[1] = Math.max(nw[1], intervals[i][1]);
+        i++;
+    }
+    out.add(nw);
+    while (i &lt; n) out.add(intervals[i++]);                             // after
+    return out.toArray(new int[0][]);
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(n). Insight: because the list is pre-sorted, the three-phase
+    walk avoids an O(n log n) re-sort — recognising the input is already ordered is the optimisation.</p>
+  </details>
+
+  <h3>Drill 2 — overlap-counting greedy <span class="lc">LeetCode 452 · Minimum Arrows to Burst Balloons</span></h3>
+  <p>Fewest arrows to burst all balloons, where each arrow clears every balloon spanning its x.</p>
+  <details><summary>Hint</summary>
+    <p>Sort by end. Shoot an arrow at the first balloon's end; it bursts every balloon starting at or
+    before that x. Skip them, then shoot again at the next uncovered balloon's end.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int findMinArrowShots(int[][] points) {
+    Arrays.sort(points, (a, b) -&gt; Integer.compare(a[1], b[1]));  // by END (avoid overflow)
+    int arrows = 1, end = points[0][1];
+    for (int[] p : points) {
+        if (p[0] &gt; end) {            // this balloon starts after the last arrow's x
+            arrows++; end = p[1];    // need a fresh arrow at its end
+        }
+    }
+    return arrows;
+}</code></pre>
+    <p class="cx">Time O(n log n) · Space O(1). Insight: same earliest-end greedy as non-overlapping
+    intervals — shooting at the earliest end maximises balloons burst per arrow. Use
+    <code>Integer.compare</code> to dodge subtraction overflow on extreme coordinates.</p>
+  </details>
+
+  <h3>Drill 3 — reachability greedy <span class="lc">LeetCode 55 · Jump Game</span></h3>
+  <p>Each value is the max jump from that index; can you reach the last index?</p>
+  <details><summary>Hint</summary>
+    <p>Track the farthest index reachable so far. Sweep left to right; if you ever stand beyond that
+    reach, you're stuck. Otherwise extend reach by <code>i + nums[i]</code>.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public boolean canJump(int[] nums) {
+    int reach = 0;
+    for (int i = 0; i &lt; nums.length; i++) {
+        if (i &gt; reach) return false;             // unreachable gap
+        reach = Math.max(reach, i + nums[i]);    // extend the frontier
+    }
+    return true;
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(1). Insight: the greedy "track farthest reach" beats the obvious
+    O(n²) DP — the safe local choice is simply always extending the frontier, since any reachable
+    index keeps every earlier reachable index reachable.</p>
+  </details>
+
+  <h3>Drill 4 — circuit greedy <span class="lc">LeetCode 134 · Gas Station</span></h3>
+  <p>Find the start index to complete the circuit, or -1 if impossible.</p>
+  <details><summary>Hint</summary>
+    <p>If total gas ≥ total cost, a solution exists. Sweep tracking a running tank; whenever it goes
+    negative, no start in <code>[start..i]</code> works, so reset start to <code>i+1</code> and
+    zero the tank.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int canCompleteCircuit(int[] gas, int[] cost) {
+    int total = 0, tank = 0, start = 0;
+    for (int i = 0; i &lt; gas.length; i++) {
+        int diff = gas[i] - cost[i];
+        total += diff; tank += diff;
+        if (tank &lt; 0) { start = i + 1; tank = 0; }   // restart after the failure point
+    }
+    return total &lt; 0 ? -1 : start;
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(1). Insight: the key lemma — if the tank goes negative at
+    <code>i</code>, no index between the old start and <code>i</code> can be the answer, so you skip
+    them all in one pass. Proving that lemma is the entire interview, not the code.</p>
+  </details>
+
+  <h2>Self-check</h2>
+  <p>Classify each: three-phase insert (D1), earliest-end overlap greedy (D2), farthest-reach greedy
+  (D3), running-tank reset greedy (D4). For every greedy, rehearse the one-sentence justification —
+  in a Staff interview the proof is graded more heavily than the loop.</p>
+
+  <div class="panel">
+    <h3>Primary source</h3>
+    <p>▸ <a href="https://leetcode.com/tag/greedy/">LeetCode — Greedy</a> and
+    <a href="https://neetcode.io/practice">NeetCode — Greedy / Intervals</a>.</p>
+  </div>
+
+  <div class="ask">
+    <strong>All four clean?</strong> After a 2–3 day gap, do the
+    <strong><a href="0036-interleaving-final.html">final Interleaving set</a></strong> — every pattern
+    in the course, mixed. Want <span class="lc">Task Scheduler</span> or
+    <span class="lc">Partition Labels</span> as extra greedy reps? Ask.
+  </div>
+
+  <footer>
+    <strong>Lesson 0035</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0036-interleaving-final.html">Final Interleaving — All Patterns</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0034-intervals-greedy.html">← Lesson 0034</a>
+  </footer>
+</body>
+</html>

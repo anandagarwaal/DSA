@@ -18,7 +18,8 @@ problem-solving on medium–hard problems under a 35–45 minute clock.
 - **Timeline:** 3–6 months. Pace for retention, not cramming.
 - **Baseline:** Rusty — was once competent, needs fundamentals rebuilt before hards.
 - **Language:** Java.
-- **Style:** Mix — short concept lesson, then immediate drill with tight feedback loops.
+- **Style:** The Math Academy Way — diagnose, teach bit by bit with a quiz after each
+  knowledge point, spaced interleaved review, intuition over procedure (see `CLAUDE.md`).
 - Working full-time (Flipkart); sessions must be short and self-contained.
 
 ## Out of scope (for now)

@@ -1,0 +1,170 @@
+{
+  "learner": "Anand",
+  "note": "Written by tools/srs.py. 'unverified' = not yet placed by diagnostic; the pre-2026-09 course marked these done without evidence.",
+  "topics": {
+    "F01": {
+      "status": "unverified"
+    },
+    "F02": {
+      "status": "unverified"
+    },
+    "F03": {
+      "status": "unverified"
+    },
+    "F14": {
+      "status": "unverified"
+    },
+    "F07": {
+      "status": "unverified"
+    },
+    "F08": {
+      "status": "unverified"
+    },
+    "F09": {
+      "status": "learning",
+      "speed": 0.8,
+      "reps": 0,
+      "fails_in_row": 1,
+      "last": "2026-09-17",
+      "next": "2026-09-17",
+      "history": [
+        {
+          "date": "2026-09-17",
+          "kind": "diagnose",
+          "result": "fail",
+          "note": "placement probe: gave the move rule for two-sum, not the proof that the discarded pairs cannot be the answer"
+        }
+      ]
+    },
+    "F13": {
+      "status": "mastered",
+      "speed": 1.0,
+      "reps": 1.0,
+      "fails_in_row": 0,
+      "last": "2026-09-17",
+      "next": "2026-09-20",
+      "history": [
+        {
+          "date": "2026-09-17",
+          "kind": "diagnose",
+          "result": "pass",
+          "note": "placement probe: explained monotonicity for binary search on answer correctly"
+        }
+      ]
+    },
+    "F10": {
+      "status": "unverified"
+    },
+    "F04": {
+      "status": "learning",
+      "speed": 0.8,
+      "reps": 0,
+      "fails_in_row": 1,
+      "last": "2026-09-17",
+      "next": "2026-09-17",
+      "history": [
+        {
+          "date": "2026-09-17",
+          "kind": "diagnose",
+          "result": "fail",
+          "note": "placement probe: restated 'next N adds are O(1)', no cost accounting, did not address why +k growth fails"
+        }
+      ]
+    },
+    "F11": {
+      "status": "learning",
+      "speed": 0.8,
+      "reps": 0,
+      "fails_in_row": 1,
+      "last": "2026-09-17",
+      "next": "2026-09-17",
+      "history": [
+        {
+          "date": "2026-09-17",
+          "kind": "diagnose",
+          "result": "fail",
+          "note": "placement probe: partial - had bounded vs unbounded key range; missed boxing, cache locality, sparsity criterion"
+        }
+      ]
+    },
+    "F16": {
+      "status": "unverified"
+    },
+    "F15": {
+      "status": "unverified"
+    },
+    "F05": {
+      "status": "unverified"
+    },
+    "F06": {
+      "status": "unverified"
+    },
+    "F12": {
+      "status": "unverified"
+    },
+    "P01": {
+      "status": "unverified"
+    },
+    "P02": {
+      "status": "unverified"
+    },
+    "P03": {
+      "status": "unverified"
+    },
+    "P04": {
+      "status": "unverified"
+    },
+    "P05": {
+      "status": "unverified"
+    },
+    "P06": {
+      "status": "unverified"
+    },
+    "P07": {
+      "status": "unverified"
+    },
+    "P08": {
+      "status": "unverified"
+    },
+    "P09": {
+      "status": "unverified"
+    },
+    "P10": {
+      "status": "unverified"
+    },
+    "P11": {
+      "status": "unverified"
+    },
+    "P12": {
+      "status": "unverified"
+    },
+    "P13": {
+      "status": "unverified"
+    },
+    "P14": {
+      "status": "unverified"
+    },
+    "P15": {
+      "status": "unverified"
+    },
+    "P16": {
+      "status": "learning",
+      "speed": 0.8,
+      "reps": 0,
+      "fails_in_row": 1,
+      "last": "2026-09-17",
+      "next": "2026-09-17",
+      "history": [
+        {
+          "date": "2026-09-17",
+          "kind": "diagnose",
+          "result": "fail",
+          "note": "placement probe: no knowledge of DP vs greedy distinction"
+        }
+      ]
+    },
+    "P17": {
+      "status": "unverified"
+    }
+  }
+}

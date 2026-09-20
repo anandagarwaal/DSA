@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0023 · More Heap Problems</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0024-interleaving-heaps.html">Next: Interleaving &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0023 · Heaps — Reps</p>
+  <h1>More Heap Problems</h1>
+  <p class="lede">Four reps: k-closest, a greedy scheduler, k-th in a sorted matrix, and a kth-largest stream class.</p>
+
+  <p>From <a href="0022-heaps-top-k.html">Lesson 0022</a> you have the size-k heap, multi-list
+  merge, and two-heaps. These reps stretch into geometry, greedy simulation, and a sorted-matrix
+  search. Decide min- vs max-heap and the comparator out loud before coding.</p>
+
+  <h3>Drill 1 — k closest by distance <span class="lc">LeetCode 973 · K Closest Points to Origin</span></h3>
+  <p>Return the <code>k</code> points nearest the origin.</p>
+  <details><summary>Hint</summary>
+    <p>k closest = k smallest distances → max-heap of size k keyed on squared distance (no sqrt
+    needed). Evict the farthest when it overflows.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int[][] kClosest(int[][] points, int k) {
+    PriorityQueue&lt;int[]&gt; max =
+        new PriorityQueue&lt;&gt;((a, b) -&gt; dist(b) - dist(a));   // max-heap by distance
+    for (int[] p : points) {
+        max.offer(p);
+        if (max.size() &gt; k) max.poll();                    // drop the farthest
+    }
+    return max.toArray(new int[0][]);
+}
+private int dist(int[] p) { return p[0]*p[0] + p[1]*p[1]; }</code></pre>
+    <p class="cx">Time O(n log k) · Space O(k). Insight: comparing squared distances avoids floating
+    point entirely — a small correctness/precision win worth stating.</p>
+  </details>
+
+  <h3>Drill 2 — greedy with a heap <span class="lc">LeetCode 1046 · Last Stone Weight</span></h3>
+  <p>Repeatedly smash the two heaviest stones; return the last remaining weight (or 0).</p>
+  <details><summary>Hint</summary>
+    <p>Max-heap. Poll the two largest, push back their difference if non-zero, repeat until ≤ 1
+    stone remains.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int lastStoneWeight(int[] stones) {
+    PriorityQueue&lt;Integer&gt; max = new PriorityQueue&lt;&gt;(Collections.reverseOrder());
+    for (int s : stones) max.offer(s);
+    while (max.size() &gt; 1) {
+        int a = max.poll(), b = max.poll();
+        if (a != b) max.offer(a - b);
+    }
+    return max.isEmpty() ? 0 : max.peek();
+}</code></pre>
+    <p class="cx">Time O(n log n) · Space O(n). Insight: "repeatedly take the best remaining" is the
+    canonical heap-greedy loop — recognising that phrasing is the trigger to reach for a PQ.</p>
+  </details>
+
+  <h3>Drill 3 — kth in sorted matrix <span class="lc">LeetCode 378 · Kth Smallest in a Sorted Matrix</span></h3>
+  <p>Rows and columns each sorted ascending; find the <code>k</code>-th smallest value.</p>
+  <details><summary>Hint</summary>
+    <p>Min-heap seeded with the first element of each row (or just row 0). Pop k times; when you pop
+    <code>(r,c)</code>, push <code>(r,c+1)</code>. (A binary-search-on-value approach is even
+    better — note it.)</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int kthSmallest(int[][] matrix, int k) {
+    int n = matrix.length;
+    PriorityQueue&lt;int[]&gt; pq =
+        new PriorityQueue&lt;&gt;((a, b) -&gt; matrix[a[0]][a[1]] - matrix[b[0]][b[1]]);
+    for (int r = 0; r &lt; Math.min(n, k); r++) pq.offer(new int[]{r, 0});
+    int val = 0;
+    for (int i = 0; i &lt; k; i++) {
+        int[] cur = pq.poll();
+        val = matrix[cur[0]][cur[1]];
+        if (cur[1] + 1 &lt; n) pq.offer(new int[]{cur[0], cur[1] + 1});
+    }
+    return val;
+}</code></pre>
+    <p class="cx">Time O(k log n) · Space O(n). Insight: this generalises Merge-k-Lists — each row is
+    a sorted list. Mentioning the O(n log(range)) binary-search-on-answer alternative shows depth.</p>
+  </details>
+
+  <h3>Drill 4 — design a stream class <span class="lc">LeetCode 703 · Kth Largest Element in a Stream</span></h3>
+  <p>Design a class that, after each <code>add</code>, returns the k-th largest seen so far.</p>
+  <details><summary>Hint</summary>
+    <p>Maintain a size-k min-heap. The root is always the k-th largest. On <code>add</code>, offer
+    and trim to size k; return the root.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>class KthLargest {
+    private final PriorityQueue&lt;Integer&gt; heap = new PriorityQueue&lt;&gt;();
+    private final int k;
+    public KthLargest(int k, int[] nums) {
+        this.k = k;
+        for (int x : nums) add(x);
+    }
+    public int add(int val) {
+        heap.offer(val);
+        if (heap.size() &gt; k) heap.poll();
+        return heap.peek();      // root of size-k min-heap = kth largest
+    }
+}</code></pre>
+    <p class="cx">Time O(log k) per add · Space O(k). Insight: the size-k min-heap <em>is</em> the
+    data structure — its root answers the query in O(1) with no recomputation. The template from
+    0022, productised.</p>
+  </details>
+
+  <h2>Self-check</h2>
+  <p>Classify each: max-heap-k geometry (D1), heap-greedy loop (D2), merge-k generalisation (D3),
+  size-k stream class (D4). The size-k-heap-whose-root-is-the-answer idea (D1, D4) is the reusable
+  core — make sure you can state which heap direction and why.</p>
+
+  <div class="panel">
+    <h3>Primary source</h3>
+    <p>▸ <a href="https://neetcode.io/practice">NeetCode — Heap / Priority Queue</a>, plus the
+    <a href="https://leetcode.com/tag/heap-priority-queue/">LeetCode tag</a>.</p>
+  </div>
+
+  <div class="ask">
+    <strong>All four clean?</strong> After a 2–3 day gap, do the
+    <strong><a href="0024-interleaving-heaps.html">Interleaving set</a></strong>. Want
+    <span class="lc">Task Scheduler</span> or <span class="lc">Reorganize String</span> as
+    greedy-heap reps? Ask.
+  </div>
+
+  <footer>
+    <strong>Lesson 0023</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0024-interleaving-heaps.html">Interleaving — Heaps + Prior Patterns</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0022-heaps-top-k.html">← Lesson 0022</a>
+  </footer>
+</body>
+</html>

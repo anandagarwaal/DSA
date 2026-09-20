@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0011 · More Binary Search Problems</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0012-interleaving-binary-search.html">Next: Interleaving &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0011 · Binary Search — Reps</p>
+  <h1>More Binary Search Problems</h1>
+  <p class="lede">Four reps: boundary-finding, a 2D twist, a no-sorted-input minimum, and another answer-space search.</p>
+
+  <p>From <a href="0010-binary-search.html">Lesson 0010</a> you have the leftmost-true template
+  and the answer-space reframing. These reps stretch both. Before coding each: state your search
+  space and the predicate's F→T direction aloud — that single sentence prevents the off-by-ones.</p>
+
+  <h3>Drill 1 — find the boundaries <span class="lc">LeetCode 34 · First and Last Position</span></h3>
+  <p>In a sorted array with duplicates, return the first and last index of <code>target</code>
+  (or <code>[-1,-1]</code>).</p>
+  <details><summary>Hint</summary>
+    <p>First index = lower bound (<code>a[i] ≥ target</code>). Last index = upper bound
+    (<code>a[i] &gt; target</code>) minus one. One template, two predicates.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int[] searchRange(int[] a, int target) {
+    int lo = lowerBound(a, target), hi = lowerBound(a, target + 1) - 1;
+    if (lo &lt; a.length &amp;&amp; a[lo] == target) return new int[]{lo, hi};
+    return new int[]{-1, -1};
+}
+private int lowerBound(int[] a, int t) {       // smallest i with a[i] >= t
+    int lo = 0, hi = a.length;
+    while (lo &lt; hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (a[mid] &gt;= t) hi = mid; else lo = mid + 1;
+    }
+    return lo;
+}</code></pre>
+    <p class="cx">Time O(log n) · Space O(1). Insight: <code>upperBound(t) = lowerBound(t+1)</code>
+    — derive one from the other instead of maintaining a second loop.</p>
+  </details>
+
+  <h3>Drill 2 — bisect a matrix <span class="lc">LeetCode 74 · Search a 2D Matrix</span></h3>
+  <p>Each row sorted, first of each row &gt; last of previous. Decide if <code>target</code> is
+  present in O(log(m·n)).</p>
+  <details><summary>Hint</summary>
+    <p>Treat the matrix as one flat sorted array of length <code>m*n</code>; map index
+    <code>mid</code> to <code>(mid / cols, mid % cols)</code>.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public boolean searchMatrix(int[][] m, int target) {
+    int rows = m.length, cols = m[0].length;
+    int lo = 0, hi = rows * cols;            // half-open over flattened index
+    while (lo &lt; hi) {
+        int mid = lo + (hi - lo) / 2;
+        int v = m[mid / cols][mid % cols];
+        if (v == target) return true;
+        if (v &lt; target) lo = mid + 1; else hi = mid;
+    }
+    return false;
+}</code></pre>
+    <p class="cx">Time O(log(mn)) · Space O(1). Insight: the index-flattening trick reuses 1D
+    binary search verbatim — recognising the isomorphism is the win.</p>
+  </details>
+
+  <h3>Drill 3 — minimum of rotated <span class="lc">LeetCode 153 · Find Minimum in Rotated Sorted Array</span></h3>
+  <p>Find the minimum element of a sorted array rotated at an unknown pivot, in O(log n).</p>
+  <details><summary>Hint</summary>
+    <p>Compare <code>a[mid]</code> to <code>a[hi]</code>. If <code>a[mid] &gt; a[hi]</code> the
+    minimum is strictly right of <code>mid</code>; else it's <code>mid</code> or left. The
+    predicate is "is mid in the left (higher) segment?"</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int findMin(int[] a) {
+    int lo = 0, hi = a.length - 1;
+    while (lo &lt; hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (a[mid] &gt; a[hi]) lo = mid + 1;   // min is to the right
+        else                hi = mid;       // min is mid or left
+    }
+    return a[lo];
+}</code></pre>
+    <p class="cx">Time O(log n) · Space O(1). Insight: compare to <code>a[hi]</code>, not
+    <code>a[lo]</code> — comparing to <code>a[lo]</code> mishandles the already-sorted case.</p>
+  </details>
+
+  <h3>Drill 4 — answer-space, harder <span class="lc">LeetCode 1011 · Capacity To Ship Packages Within D Days</span></h3>
+  <p>Ship weights in order within <code>days</code>. Find the minimum ship capacity.</p>
+  <details><summary>Hint</summary>
+    <p>Capacity lies in <code>[max(weights), sum(weights)]</code>. <code>daysNeeded(cap)</code> is
+    non-increasing in <code>cap</code> → bisect for the smallest feasible capacity.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int shipWithinDays(int[] w, int days) {
+    int lo = 0, hi = 0;
+    for (int x : w) { lo = Math.max(lo, x); hi += x; }   // bounds
+    while (lo &lt; hi) {
+        int cap = lo + (hi - lo) / 2;
+        if (feasible(w, cap, days)) hi = cap; else lo = cap + 1;
+    }
+    return lo;
+}
+private boolean feasible(int[] w, int cap, int days) {
+    int need = 1, load = 0;
+    for (int x : w) {
+        if (load + x &gt; cap) { need++; load = 0; }
+        load += x;
+    }
+    return need &lt;= days;
+}</code></pre>
+    <p class="cx">Time O(n log sum) · Space O(1). Insight: same shape as Koko — lower bound is
+    <code>max</code> (one item must fit), upper bound is <code>sum</code> (one trip). Getting the
+    bounds right is half the problem.</p>
+  </details>
+
+  <h2>Self-check</h2>
+  <p>Classify each: boundary-find (D1), index-flatten (D2), rotated-min (D3), answer-space (D4).
+  Then write the leftmost-true template from memory with no reference. If you can, you own binary
+  search.</p>
+
+  <div class="panel">
+    <h3>Primary source</h3>
+    <p>▸ <a href="https://cp-algorithms.com/num_methods/binary_search.html">cp-algorithms —
+    Binary search</a>, plus the <a href="https://leetcode.com/tag/binary-search/">LeetCode tag</a>.</p>
+  </div>
+
+  <div class="ask">
+    <strong>All four clean?</strong> After a 2–3 day gap, do the
+    <strong><a href="0012-interleaving-binary-search.html">Interleaving set</a></strong> — it mixes
+    binary search with windows, pointers, and hashing blind. Want <span class="lc">Median of Two
+    Sorted Arrays</span> as a stretch? Ask and I'll set it up.
+  </div>
+
+  <footer>
+    <strong>Lesson 0011</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0012-interleaving-binary-search.html">Interleaving — Binary Search + Prior Patterns</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0010-binary-search.html">← Lesson 0010</a>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0036 · Final Interleaving — Every Pattern, Mixed</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="../../index.html">Course home &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0036 · Final Interleaving</p>
+  <h1>Final Interleaving — Every Pattern, Cold</h1>
+  <p class="lede">Twelve patterns, one mixed set. This is the interview: read the prompt, name the tool and its complexity, in under 30 seconds — before any code.</p>
+
+  <div class="panel">
+    <strong>The capstone drill.</strong> No topic label, no warm-up. The single most predictive
+    interview skill is pattern <em>recognition under uncertainty</em> — turning an unfamiliar prompt
+    into "this is a &lt;pattern&gt; problem because &lt;signal&gt;, so &lt;approach&gt; in
+    &lt;complexity&gt;." Do this set after a gap of several days, then revisit any module whose
+    signal you missed.
+  </div>
+
+  <h2>The full decision fork — your one-page index</h2>
+  <table>
+    <tr><th>Signal in the prompt</th><th>Pattern</th></tr>
+    <tr><td>"Seen it?" / counts / group-by / dedupe</td><td>Hashing</td></tr>
+    <tr><td>Sorted array; pair/triple sums; in-place compaction</td><td>Two pointers</td></tr>
+    <tr><td>Longest/shortest contiguous run under a constraint</td><td>Sliding window</td></tr>
+    <tr><td>Sorted data, or "min value such that feasible"</td><td>Binary search (incl. on answer)</td></tr>
+    <tr><td>Next/previous greater; nested matching; spans</td><td>Monotonic stack</td></tr>
+    <tr><td>Middle / cycle / reorder of a node list</td><td>Linked-list (fast-slow, dummy, reverse)</td></tr>
+    <tr><td>Tree property; level order; LCA; serialize</td><td>Tree DFS/BFS</td></tr>
+    <tr><td>"k largest/smallest/closest"; merge k; running median</td><td>Heap / top-k</td></tr>
+    <tr><td>"List all subsets/permutations/partitions/boards"</td><td>Backtracking</td></tr>
+    <tr><td>Shortest path; components; dependencies; grouping</td><td>Graph (BFS/Dijkstra/topo/union-find)</td></tr>
+    <tr><td>"How many ways / min cost / longest" + reused subproblems</td><td>Dynamic programming</td></tr>
+    <tr><td>Merge/overlap intervals; provably-safe local choice</td><td>Intervals / greedy</td></tr>
+  </table>
+
+  <h2>Drill — name the tool, cold</h2>
+  <p>For each: the pattern, the approach in one line, <em>and</em> the complexity. Then check.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <h2>Debrief — how Staff candidates are judged</h2>
+  <p>At L6/L7, getting a working solution is table stakes. The signal is everything around it:
+  <strong>naming the pattern fast</strong>, <strong>stating why it's correct and why it's optimal</strong>
+  (the exchange argument, the recurrence, the invariant), <strong>giving tight complexity bounds</strong>,
+  and <strong>noting the better specialised alternative</strong> when one exists (bucket sort over a
+  heap, quickselect over sorting, binary-search-on-answer over a heap). Meta weights clean, fast,
+  bug-free code; Google weights the "why." This course trained the recognition; the remaining work is
+  volume and the verbal articulation — narrate your reasoning out loud as you solve.</p>
+
+  <div class="ask">
+    <strong>This is the finish line of the core curriculum.</strong> Tell me which signals you
+    missed and I'll generate a focused remediation set. When you're ready, ask me for a
+    <em>timed mock</em> (45 minutes, two problems, think-aloud) or a deeper dive into any single
+    pattern — and to point you at a <strong>community</strong> (the
+    <a href="https://leetcode.com/discuss/interview-question">LeetCode interview discuss</a> forum,
+    or Blind/teamblind for L6/L7 calibration) to test these skills against real interview reports.
+  </div>
+
+  <footer>
+    <strong>Lesson 0036</strong> · DSA for L6/L7 Interviews · Core curriculum complete ·<br>
+    <a href="../../index.html">Course home</a> · <a href="0035-intervals-greedy-more-problems.html">← More Intervals &amp; Greedy</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 36;
+const QUESTIONS = [
+  {
+    q: "1. Smallest window in s containing all characters of t.",
+    options: [
+      {t:"Sliding window with a need-count map", ok:true},
+      {t:"Backtracking over all substrings of s", ok:false},
+      {t:"Binary search on the window length", ok:false},
+      {t:"Min-heap of the characters of t", ok:false}
+    ],
+    good:"Right — expand to satisfy the counts, then contract while still valid; track the best. O(n).",
+    bad:"Minimum-window-substring is a variable sliding window with a requirement map, not enumeration. O(n)."
+  },
+  {
+    q: "2. Find the median of two sorted arrays in logarithmic time.",
+    options: [
+      {t:"Binary search on the partition point", ok:true},
+      {t:"Merge both arrays then index the middle", ok:false},
+      {t:"Two heaps split around the median", ok:false},
+      {t:"Two pointers walking both arrays", ok:false}
+    ],
+    good:"Right — binary-search the cut so left halves hold n/2 elements; O(log min(m,n)). Merging is only O(m+n).",
+    bad:"The log-time bar forces binary search on the partition; merging or two-pointer walking is O(m+n), too slow."
+  },
+  {
+    q: "3. Largest area of a rectangle formed within a histogram.",
+    options: [
+      {t:"Monotonic increasing stack of indices", ok:true},
+      {t:"Dynamic programming over the bars", ok:false},
+      {t:"Sliding window of fixed bar width", ok:false},
+      {t:"Greedy by always taking the tallest bar", ok:false}
+    ],
+    good:"Right — a monotonic stack fixes each bar's span when a shorter bar pops it; O(n).",
+    bad:"This is the monotonic-stack classic: pop on a shorter bar to settle each rectangle's width. O(n)."
+  },
+  {
+    q: "4. Cheapest path in a weighted graph with non-negative edges.",
+    options: [
+      {t:"Dijkstra with a min-heap frontier", ok:true},
+      {t:"Plain BFS counting hops", ok:false},
+      {t:"Topological sort then a sweep", ok:false},
+      {t:"Backtracking over all the paths", ok:false}
+    ],
+    good:"Right — non-negative weights → Dijkstra, a heap-ordered BFS; O(E log V). Plain BFS ignores weights.",
+    bad:"Weighted shortest path with non-negative edges = Dijkstra (heap). Plain BFS is only correct when edges are equal."
+  },
+  {
+    q: "5. Maximum money robbing non-adjacent houses in a row.",
+    options: [
+      {t:"Linear DP keeping the prior two states", ok:true},
+      {t:"Greedy: rob every alternate house", ok:false},
+      {t:"Backtracking over all rob subsets", ok:false},
+      {t:"Max-heap of the house values", ok:false}
+    ],
+    good:"Right — dp[i]=max(dp[i-1], dp[i-2]+a[i]), collapsible to O(1) space. Alternating greedy is wrong.",
+    bad:"House Robber is linear DP; a fixed alternating greedy fails on cases like [2,1,1,2]. O(n), O(1) space."
+  },
+  {
+    q: "6. Minimum number of conference rooms for overlapping meetings.",
+    options: [
+      {t:"Sort by start, min-heap of end times", ok:true},
+      {t:"Backtracking over room assignments", ok:false},
+      {t:"Binary search on the room count", ok:false},
+      {t:"Two pointers over one sorted list", ok:false}
+    ],
+    good:"Right — a min-heap of end times reuses freed rooms; its peak size is the answer. O(n log n).",
+    bad:"Intervals + heap: sort by start, pop a room whose end ≤ this start, else allocate. Peak heap size = rooms."
+  },
+  {
+    q: "7. Detect whether a linked list contains a cycle, O(1) space.",
+    options: [
+      {t:"Fast and slow pointer (Floyd's)", ok:true},
+      {t:"Hash every node visited so far", ok:false},
+      {t:"Reverse the list and compare it", ok:false},
+      {t:"Binary search over the node count", ok:false}
+    ],
+    good:"Right — two pointers at 1× and 2× speed meet inside any cycle; O(n) time, O(1) space.",
+    bad:"Floyd's fast/slow meets inside a cycle in O(1) space. Hashing nodes works but costs O(n) extra space."
+  },
+  {
+    q: "8. Return the k most frequent words in a large document.",
+    options: [
+      {t:"Count map then a size-k heap", ok:true},
+      {t:"Sort all words, then scan once", ok:false},
+      {t:"Sliding window across the words", ok:false},
+      {t:"Union-find grouping equal words", ok:false}
+    ],
+    good:"Right — tally in a map, then a size-k heap by frequency (tie-break lexicographically). O(n log k).",
+    bad:"Count then size-k heap, O(n log k); the heap's comparator handles frequency and lexicographic ties."
+  }
+];
+</script>
+<script src="../../assets/quiz.js"></script>
+</body>
+</html>

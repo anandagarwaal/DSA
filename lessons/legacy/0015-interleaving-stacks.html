@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0015 · Interleaving — Stacks + Prior Patterns</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0016-linked-lists.html">Next lesson: Linked Lists &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0015 · Interleaving</p>
+  <h1>Mixed Retrieval — Stacks + Binary Search + Windows + Pointers + Hashing</h1>
+  <p class="lede">Five tools. The new discriminator: "most-recent-unresolved-item" → stack, vs everything else.</p>
+
+  <div class="panel">
+    <strong>Do this after a 2–3 day gap</strong> from Lessons 0013–0014. The failure mode now is
+    missing the LIFO/monotonic signal — brute-forcing "next greater" at O(n²) when a stack gives
+    O(n). Train the cold recognition across all five patterns.
+  </div>
+
+  <h2>The decision fork to internalise</h2>
+  <table>
+    <tr><th>Signal</th><th>Reach for</th></tr>
+    <tr><td>Next/previous greater or smaller; nested matching</td><td>Stack (monotonic / plain)</td></tr>
+    <tr><td>"Min/max value such that feasible"; sorted lookup</td><td>Binary search</td></tr>
+    <tr><td>Longest/shortest contiguous run with a constraint</td><td>Sliding window</td></tr>
+    <tr><td>Sorted, pair/triplet, O(1) space</td><td>Converging two pointers</td></tr>
+    <tr><td>Contiguous sum with negatives</td><td>Prefix sum + hash map</td></tr>
+    <tr><td>"Seen it?" / counts / group-by</td><td>Hash set / map</td></tr>
+  </table>
+
+  <h2>Drill — name the tool, cold</h2>
+  <p>State the approach <em>and</em> its complexity in under 30 seconds, then check.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <h2>Debrief</h2>
+  <p>The stack tell is temporal: "the thing I must act on is the most recently seen one still
+  unresolved." Next-greater, span, nesting, and histogram all share it. If you catch yourself
+  writing a nested loop to look rightward for a bigger element, that's the cue to reach for a
+  monotonic stack and drop O(n²) to O(n).</p>
+
+  <div class="ask">
+    <strong>Hesitated anywhere?</strong> Tell me which items and I'll generate a targeted set.
+    Otherwise, on to <strong><a href="0016-linked-lists.html">Lesson 0016 · Linked Lists</a></strong>
+    — fast/slow pointers, reversal, and cycle detection.
+  </div>
+
+  <footer>
+    <strong>Lesson 0015</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0016-linked-lists.html">Lesson 0016 · Linked Lists</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0014-stacks-more-problems.html">← More Stacks</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 15;
+const QUESTIONS = [
+  {
+    q: "1. For each element, find the next strictly greater one to its right.",
+    options: [
+      {t:"Decreasing monotonic stack of indices", ok:true},
+      {t:"Binary search over the value range", ok:false},
+      {t:"Sliding window with a running max", ok:false},
+      {t:"Converging pointers from both ends", ok:false}
+    ],
+    good:"Right — keep a decreasing stack; each larger arrival resolves all smaller pending indices. O(n).",
+    bad:"It's the canonical monotonic stack: decreasing by value, popped when a larger element arrives. O(n)."
+  },
+  {
+    q: "2. Minimum number of platforms so no train waits (sorted times).",
+    options: [
+      {t:"Binary search on the platform count", ok:true},
+      {t:"Decreasing monotonic stack of times", ok:false},
+      {t:"Hash each arrival time to a count", ok:false},
+      {t:"Converging pointers on the arrays", ok:false}
+    ],
+    good:"Right — feasibility is monotonic in platform count, so bisect it (or sweep) with a simple check.",
+    bad:"Feasibility grows monotonically with platforms → binary-search the count and verify each guess."
+  },
+  {
+    q: "3. Validate that a string of three bracket types is well nested.",
+    options: [
+      {t:"Plain LIFO stack matching closers", ok:true},
+      {t:"Monotonic stack of bracket codes", ok:false},
+      {t:"Hash map counting each bracket", ok:false},
+      {t:"Two pointers from both string ends", ok:false}
+    ],
+    good:"Right — push openers, match each closer against the top; the stack must end empty. O(n).",
+    bad:"Counting alone misses ordering like ([)]. You need a plain LIFO stack matching each closer to the top."
+  },
+  {
+    q: "4. Largest rectangle area in a bar histogram.",
+    options: [
+      {t:"Increasing monotonic stack of indices", ok:true},
+      {t:"Sliding window of fixed bar width", ok:false},
+      {t:"Binary search over the area value", ok:false},
+      {t:"Hash each height to its frequency", ok:false}
+    ],
+    good:"Right — increasing stack; popping on a shorter bar yields each rectangle's width from its bounds. O(n).",
+    bad:"It's an increasing monotonic stack: each pop computes a rectangle whose width spans to the shorter bounds."
+  },
+  {
+    q: "5. Longest substring with no repeating characters.",
+    options: [
+      {t:"Variable window with a last-seen map", ok:true},
+      {t:"Monotonic stack of the characters", ok:false},
+      {t:"Binary search on substring length", ok:false},
+      {t:"Converging pointers from both ends", ok:false}
+    ],
+    good:"Right — contiguous + constraint → variable window; jump left past the duplicate's last index. O(n).",
+    bad:"No stack needed: it's a variable window plus a last-seen map, shrinking past duplicates. O(n)."
+  },
+  {
+    q: "6. Days until a warmer temperature, for each day.",
+    options: [
+      {t:"Decreasing monotonic stack of indices", ok:true},
+      {t:"Sliding window over the temperatures", ok:false},
+      {t:"Binary search the future temperatures", ok:false},
+      {t:"Hash each temperature to its index", ok:false}
+    ],
+    good:"Right — decreasing stack of indices; a warmer day pops pending ones, distance is i minus index. O(n).",
+    bad:"It's next-greater in disguise: decreasing index stack, distance i−j on each pop. O(n)."
+  }
+];
+</script>
+<script src="../../assets/quiz.js"></script>
+</body>
+</html>

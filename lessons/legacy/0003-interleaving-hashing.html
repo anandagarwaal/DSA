@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0003 · Interleaving — Name the Tool</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0004-two-pointers.html">Next lesson: Two Pointers &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0003 · Interleaving</p>
+  <h1>Mixed Retrieval — Name the Tool</h1>
+  <p class="lede">The hardest, most valuable rep: deciding <em>which</em> pattern applies, cold, with no chapter heading to tip you off.</p>
+
+  <div class="panel">
+    <strong>Do this after a 2–3 day gap</strong> from Lessons 0001–0002. The delay feels like
+    forgetting — that's the point. Reloading a faded memory is what converts <em>fluency</em>
+    (works now) into <em>storage strength</em> (works in the interview three months from now).
+  </div>
+
+  <h2>Why mix, instead of more blocked reps?</h2>
+  <p>When you drill ten hashing problems in a row (<em>blocked</em> practice), your brain
+  already knows the answer is "hashing" before reading the problem — so you never train the
+  step that actually matters in an interview: <strong>looking at a cold problem and choosing
+  the tool.</strong> Interleaving forces that choice every time. It feels worse and scores
+  better — a classic <em>desirable difficulty</em>.</p>
+  <p>So the goal below is <strong>not</strong> to solve each problem. It's to <em>name the
+  approach and its complexity in under 30 seconds</em> — the 2–3 minute recognition skill from
+  your <a href="../../MISSION.md">mission</a>, compressed.</p>
+
+  <h2>Drill — name the tool before you click</h2>
+  <p>For each one-liner, say the approach out loud, then check. One option is the
+  interview-optimal tool; the rest are plausible traps.</p>
+
+  <div class="quiz" id="quiz"></div>
+
+  <h2>Debrief</h2>
+  <p>Two of these (the sorted-pair one, and top-K) are <em>not</em> best solved by a plain
+  hash map — recognising that boundary is the whole game. The sorted-array pair points
+  straight at your next pattern: <strong>two pointers</strong>, which buys O(1) space exactly
+  when the input is sorted. Hold that thought.</p>
+
+  <div class="why">Interview tell: when you can say "I could hash this in O(n) space, but since
+  the array is sorted, two pointers does it in O(1) — I'll take that tradeoff," you've just
+  demonstrated the Staff-level judgement Google and Meta are scoring.</div>
+
+  <div class="ask">
+    <strong>How did it feel?</strong> If you hesitated on 2+ items, that's signal, not failure —
+    tell me which, and I'll generate a fresh mixed set to re-test those specific boundaries.
+    Otherwise you're ready: open <strong><a href="0004-two-pointers.html">Lesson 0004 · Two
+    Pointers</a></strong>, where the interleaving step will start folding hashing back in.
+  </div>
+
+  <footer>
+    <strong>Lesson 0003</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0004-two-pointers.html">Lesson 0004 · Two Pointers</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0002-hashing-more-problems.html">← More Hashing Problems</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 1;
+const QUESTIONS = [
+  {
+    q: "1. Count contiguous subarrays summing to k — values may be negative.",
+    options: [
+      {t:"Prefix sums plus map", ok:true},
+      {t:"Sliding window two pointers", ok:false},
+      {t:"Sort then binary search", ok:false},
+      {t:"Min heap of counts", ok:false}
+    ],
+    good:"Yes — prefix[i]−prefix[j]=k → look up prefix−k in a count map. Negatives kill the window. O(n).",
+    bad:"Negatives break sliding windows and sorting. It's prefix-sum + a count map — O(n) time and space."
+  },
+  {
+    q: "2. Does any value appear at least twice in the array?",
+    options: [
+      {t:"Hash set membership", ok:true},
+      {t:"Two nested loops", ok:false},
+      {t:"Min heap pop", ok:false},
+      {t:"Binary search each", ok:false}
+    ],
+    good:"Right — add to a HashSet; a failed add means a duplicate. O(n) time, O(n) space.",
+    bad:"All of those are slower. 'Have I seen this?' → HashSet membership, O(n)."
+  },
+  {
+    q: "3. Group words that are anagrams of one another.",
+    options: [
+      {t:"Map by sorted key", ok:true},
+      {t:"Prefix sums counting", ok:false},
+      {t:"Min heap frequency", ok:false},
+      {t:"Binary search answer", ok:false}
+    ],
+    good:"Yes — the canonical key (sorted letters or a count signature) buckets anagrams together.",
+    bad:"This is group-by: map a canonical key (sorted letters / count signature) → list of originals."
+  },
+  {
+    q: "4. Two values in a SORTED array summing to target — use O(1) space.",
+    options: [
+      {t:"Converging two pointers", ok:true},
+      {t:"Hash map complements", ok:false},
+      {t:"Group derived keys", ok:false},
+      {t:"Prefix sums map", ok:false}
+    ],
+    good:"Correct — sorted + O(1) space rules out hashing. Move pointers inward by comparison. O(n), O(1).",
+    bad:"A map works but costs O(n) space. Sorted input lets converging two pointers do it in O(1) — that's the tell."
+  },
+  {
+    q: "5. Return the k most frequent elements, faster than n log n.",
+    options: [
+      {t:"Count map plus buckets", ok:true},
+      {t:"Sort whole array", ok:false},
+      {t:"Converging two pointers", ok:false},
+      {t:"Single set pass", ok:false}
+    ],
+    good:"Yes — count with a map, then bucket by frequency (range 1..n) and read high→low. O(n).",
+    bad:"Sorting is n log n. Count with a map, then bucket-by-frequency for O(n) (a heap gives O(n log k))."
+  }
+];
+</script>
+<script src="../../assets/quiz.js"></script>
+</body>
+</html>

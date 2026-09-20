@@ -87,3 +87,46 @@ footer a{color:var(--accent)}
 .steplabel{font-family:ui-monospace,Menlo,monospace; font-size:.68rem; color:var(--soft); width:5.2rem; flex:none}
 
 @media print{ body{background:#fff} .opt{cursor:default} details{break-inside:avoid} .topnav{display:none} }
+
+/* ---- engine (assets/engine.js) ---- */
+.btn{font:inherit; font-size:.88rem; background:var(--accent); color:#fff; border:0; border-radius:6px; padding:.5rem .95rem; margin:.5rem .4rem .2rem 0; cursor:pointer}
+.btn:disabled{opacity:.45; cursor:default}
+.btn.ghost{background:transparent; color:var(--accent); border:1px solid var(--accent)}
+.btn.next{display:block; margin-top:.9rem}
+.opt.picked{border-color:var(--accent); background:#f6ecec}
+.opt:disabled{cursor:default}
+.qbox .q{font-weight:600; margin:.2rem 0 .7rem}
+.qbox .q pre{font-weight:400}
+.qbox textarea{width:100%; font:inherit; font-size:.9rem; border:1px solid var(--rule); border-radius:6px; padding:.6rem .7rem; background:#fff}
+.numin{font:inherit; font-size:.95rem; padding:.45rem .6rem; border:1px solid var(--rule); border-radius:6px; width:12rem}
+.row{display:flex; flex-wrap:wrap; gap:.4rem; align-items:center}
+.fb strong{margin-right:.3rem}
+.fb{margin-top:.8rem; line-height:1.5}
+.model{border:1px dashed var(--rule); border-radius:8px; padding:.7rem 1rem; margin-top:.8rem; background:#fff}
+.model .label{font-family:ui-monospace,Menlo,monospace; font-size:.68rem; text-transform:uppercase; letter-spacing:.1em; color:var(--soft); margin:.6rem 0 .3rem}
+.rub{display:flex; gap:.55rem; align-items:flex-start; font-size:.9rem; margin:.35rem 0}
+.rub input{margin-top:.3rem}
+.meter{font-family:ui-monospace,Menlo,monospace; font-size:.7rem; color:var(--soft); letter-spacing:.04em; margin-bottom:.6rem}
+section.kp{border-top:1px solid var(--rule); margin-top:2rem}
+section.kp.locked{opacity:.5}
+section.kp h2{border:0}
+.stepno{font-family:ui-monospace,Menlo,monospace; font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); display:block}
+.teach .sub{font-family:ui-monospace,Menlo,monospace; font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); margin:1rem 0 .2rem}
+.teach .ex{background:#fff; border:1px solid var(--rule); border-radius:8px; padding:.7rem 1rem; margin:.8rem 0}
+.fig{margin:1rem 0; text-align:center}
+.fig svg{max-width:100%; height:auto}
+.fig figcaption{font-size:.82rem; color:var(--soft); font-style:italic; margin-top:.3rem}
+.offline{background:#fffbe9; border:1px solid var(--gold); border-radius:8px; padding:.7rem 1rem; margin:1rem 0; font-size:.9rem}
+.good-box{background:#e7f3ec; border:1px solid var(--good); border-radius:8px; padding:.7rem 1rem; margin:1rem 0; font-size:.92rem}
+.bad-box{background:#f6e7e7; border:1px solid var(--bad); border-radius:8px; padding:.7rem 1rem; margin:1rem 0; font-size:.92rem}
+.prereqs{font-size:.9rem; margin:1rem 0}
+.prereqs .badge{margin-left:.3rem}
+.warn{color:var(--bad); font-size:.88rem}
+details.place{background:var(--panel)}
+h1 .badge{font-size:.55rem; vertical-align:middle; margin-left:.6rem}
+.badge.st-mastered{background:#e7f3ec; color:var(--good)}
+.badge.st-learning,.badge.st-remediate{background:#f6e7e7; color:var(--bad)}
+.badge.st-unverified,.badge.st-not_started{background:var(--kbd); color:var(--soft)}
+.module .steps li .badge{margin-left:auto}
+.pick label{display:block; font-size:.88rem}
+.reset{margin-top:3rem}

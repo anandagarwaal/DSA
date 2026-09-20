@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0018 · Interleaving — Linked Lists + Prior Patterns</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0019-trees.html">Next lesson: Trees &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0018 · Interleaving</p>
+  <h1>Mixed Retrieval — Linked Lists + Stacks + Binary Search + Windows + Pointers + Hashing</h1>
+  <p class="lede">Six tools. The new axis: pointer surgery on nodes vs index-based work on arrays.</p>
+
+  <div class="panel">
+    <strong>Do this after a 2–3 day gap</strong> from Lessons 0016–0017. The list idioms
+    (reversal, fast/slow, dummy head) echo array two-pointers — the discriminator is the data
+    structure, not the move. Train spotting which idiom a node-based problem needs.
+  </div>
+
+  <h2>The decision fork to internalise</h2>
+  <table>
+    <tr><th>Signal</th><th>Reach for</th></tr>
+    <tr><td>Node list: middle, cycle, nth-from-end, reorder</td><td>Fast/slow + dummy + reversal</td></tr>
+    <tr><td>Next/previous greater; nested matching</td><td>Stack (monotonic / plain)</td></tr>
+    <tr><td>"Min/max value such that feasible"; sorted lookup</td><td>Binary search</td></tr>
+    <tr><td>Longest/shortest contiguous run with a constraint</td><td>Sliding window</td></tr>
+    <tr><td>Sorted array, pair/triplet, O(1) space</td><td>Converging two pointers</td></tr>
+    <tr><td>"Seen it?" / arbitrary-node lookup / group-by</td><td>Hash set / map</td></tr>
+  </table>
+
+  <h2>Drill — name the tool, cold</h2>
+  <p>State the approach <em>and</em> its complexity in under 30 seconds, then check.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <h2>Debrief</h2>
+  <p>The list reflex: with O(1) space required on a node structure, you're almost always composing
+  fast/slow, reversal, and a dummy head — not copying into an array. And when arbitrary-node lookup
+  appears (random pointers, intersection), a hash map bridges lists and hashing. Naming the
+  composition up front is the Staff move.</p>
+
+  <div class="ask">
+    <strong>Hesitated anywhere?</strong> Tell me which items and I'll generate a targeted set.
+    Otherwise, on to <strong><a href="0019-trees.html">Lesson 0019 · Trees</a></strong> — BFS/DFS
+    traversals and the recursion templates that unlock most tree problems.
+  </div>
+
+  <footer>
+    <strong>Lesson 0018</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0019-trees.html">Lesson 0019 · Trees</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0017-linked-lists-more-problems.html">← More Linked Lists</a>
+  </footer>
+
+<script>
+var QUIZ_SEED = 18;
+const QUESTIONS = [
+  {
+    q: "1. Detect whether a singly linked list contains a cycle, O(1) space.",
+    options: [
+      {t:"Fast and slow pointer traversal", ok:true},
+      {t:"Hash every node into a visited set", ok:false},
+      {t:"Binary search the node positions", ok:false},
+      {t:"Monotonic stack of the node values", ok:false}
+    ],
+    good:"Right — Floyd's fast/slow meet inside a cycle and use no extra space; the set costs O(n).",
+    bad:"For O(1) space use Floyd's fast/slow pointers; a visited set works but costs O(n) memory."
+  },
+  {
+    q: "2. Reverse a singly linked list in place.",
+    options: [
+      {t:"Three-pointer in-place rewiring", ok:true},
+      {t:"Push all nodes onto a stack", ok:false},
+      {t:"Two pointers converging from ends", ok:false},
+      {t:"Binary search to split then swap", ok:false}
+    ],
+    good:"Right — prev/cur/next rewiring reverses links in O(1) space; a stack would cost O(n).",
+    bad:"It's the three-pointer in-place reversal, O(1) space. A stack reverses too but wastes O(n) memory."
+  },
+  {
+    q: "3. Find the node where two singly linked lists first intersect.",
+    options: [
+      {t:"Two pointers swapping list tails", ok:true},
+      {t:"Sliding window across both lists", ok:false},
+      {t:"Binary search one list for nodes", ok:false},
+      {t:"Monotonic stack of both lists", ok:false}
+    ],
+    good:"Right — advance two pointers, switching to the other head at each end; they meet at the join. O(1).",
+    bad:"Use two pointers that switch heads at the end, equalising lengths; they meet at the intersection. O(1)."
+  },
+  {
+    q: "4. Count contiguous subarrays of an array summing to k, with negatives.",
+    options: [
+      {t:"Prefix sums stored in a hashmap", ok:true},
+      {t:"Fast and slow pointer traversal", ok:false},
+      {t:"In-place three-pointer rewiring", ok:false},
+      {t:"Binary search over the prefixes", ok:false}
+    ],
+    good:"Right — this is an array, not a list; negatives mean prefix sums + a count map. O(n).",
+    bad:"It's an array problem: negatives rule out windows, so prefix sums + a count map. O(n)."
+  },
+  {
+    q: "5. Remove the nth node from the end of a list in one pass.",
+    options: [
+      {t:"Dummy head with an n-gap fast pointer", ok:true},
+      {t:"Hash each node to its distance", ok:false},
+      {t:"Binary search the list length", ok:false},
+      {t:"Monotonic stack of the node values", ok:false}
+    ],
+    good:"Right — a dummy plus an n+1 gap leaves slow on the predecessor; the dummy handles head removal. O(n).",
+    bad:"Dummy head + a fast pointer started n+1 ahead; when fast ends, slow is the predecessor. One pass, O(n)."
+  },
+  {
+    q: "6. Reorder a list as L0, Ln, L1, Ln-1, ... in place.",
+    options: [
+      {t:"Find middle, reverse half, then weave", ok:true},
+      {t:"Sort the nodes then relink in order", ok:false},
+      {t:"Binary search to pair the nodes", ok:false},
+      {t:"Hash positions then rebuild the list", ok:false}
+    ],
+    good:"Right — compose three idioms: fast/slow middle, reverse the second half, merge alternately. O(1) space.",
+    bad:"It's a composition: fast/slow to the middle, reverse the back half, then weave the two halves. O(1)."
+  }
+];
+</script>
+<script src="../../assets/quiz.js"></script>
+</body>
+</html>

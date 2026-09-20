@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0032 · More DP Problems</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="home" href="../../index.html">Course home</a>
+    <a href="0033-interleaving-dp.html">Next: Interleaving &rarr;</a>
+  </nav>
+  <p class="eyebrow">Lesson 0032 · DP — Reps</p>
+  <h1>More DP Problems</h1>
+  <p class="lede">Four reps across the families: subset-sum, longest increasing subsequence, edit distance, and a state-machine.</p>
+
+  <p>From <a href="0031-dynamic-programming.html">Lesson 0031</a> you have the five-question
+  procedure and the linear / knapsack / two-sequence shapes. These reps hit the families that trip
+  people up: <strong>0/1 knapsack</strong>, <strong>LIS</strong> (and its O(n log n) twist),
+  <strong>edit distance</strong>, and a <strong>state-machine</strong>. Run the five questions on
+  each before peeking — keep the <a href="../../reference/0003-dp-framework.html">framework
+  reference</a> open.</p>
+
+  <h3>Drill 1 — 0/1 knapsack <span class="lc">LeetCode 416 · Partition Equal Subset Sum</span></h3>
+  <p>Can the array be split into two subsets of equal sum?</p>
+  <details><summary>Hint</summary>
+    <p>If total is odd, no. Else target = sum/2; ask "can some subset hit target?" — a 0/1 knapsack.
+    <code>dp[s]</code> = is sum <code>s</code> reachable. Iterate sums <em>downward</em> so each item
+    is used once.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public boolean canPartition(int[] nums) {
+    int sum = 0; for (int x : nums) sum += x;
+    if (sum % 2 != 0) return false;
+    int target = sum / 2;
+    boolean[] dp = new boolean[target + 1];
+    dp[0] = true;
+    for (int x : nums)
+        for (int s = target; s &gt;= x; s--)     // DOWNWARD = each item used once
+            dp[s] = dp[s] || dp[s - x];
+    return dp[target];
+}</code></pre>
+    <p class="cx">Time O(n·target) · Space O(target). Insight: the reverse inner loop is the whole
+    0/1-vs-unbounded distinction — descending sums stop an item being reused in the same pass.
+    Forward would be unbounded knapsack.</p>
+  </details>
+
+  <h3>Drill 2 — subsequence DP <span class="lc">LeetCode 300 · Longest Increasing Subsequence</span></h3>
+  <p>Length of the longest strictly increasing subsequence.</p>
+  <details><summary>Hint</summary>
+    <p>O(n²): <code>dp[i]</code> = LIS ending at i; <code>dp[i] = 1 + max(dp[j])</code> over
+    <code>j&lt;i, a[j]&lt;a[i]</code>. The O(n log k) twist: keep a "tails" array, binary-search the
+    insertion point for each value.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>// O(n log n): tails[k] = smallest possible tail of an increasing subseq of length k+1.
+public int lengthOfLIS(int[] nums) {
+    int[] tails = new int[nums.length]; int size = 0;
+    for (int x : nums) {
+        int lo = 0, hi = size;                // binary search for x's slot
+        while (lo &lt; hi) {
+            int mid = lo + (hi - lo) / 2;
+            if (tails[mid] &lt; x) lo = mid + 1; else hi = mid;
+        }
+        tails[lo] = x;                        // extend or overwrite
+        if (lo == size) size++;
+    }
+    return size;
+}</code></pre>
+    <p class="cx">Time O(n log n) · Space O(n). Insight: this fuses DP with binary search — each value
+    replaces the smallest tail ≥ it, keeping <code>tails</code> sorted. Knowing both the O(n²) DP and
+    this O(n log n) refinement is a strong Staff signal.</p>
+  </details>
+
+  <h3>Drill 3 — two-string grid <span class="lc">LeetCode 72 · Edit Distance</span></h3>
+  <p>Minimum insert/delete/replace operations to turn string A into string B.</p>
+  <details><summary>Hint</summary>
+    <p><code>dp[i][j]</code> = edits for prefixes. Match → carry <code>dp[i-1][j-1]</code>; else
+    1 + min(replace <code>dp[i-1][j-1]</code>, delete <code>dp[i-1][j]</code>, insert
+    <code>dp[i][j-1]</code>). Base rows/cols = "delete/insert everything."</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int minDistance(String a, String b) {
+    int m = a.length(), n = b.length();
+    int[][] dp = new int[m + 1][n + 1];
+    for (int i = 0; i &lt;= m; i++) dp[i][0] = i;     // delete all of a's prefix
+    for (int j = 0; j &lt;= n; j++) dp[0][j] = j;     // insert all of b's prefix
+    for (int i = 1; i &lt;= m; i++)
+        for (int j = 1; j &lt;= n; j++)
+            dp[i][j] = (a.charAt(i-1) == b.charAt(j-1))
+                ? dp[i-1][j-1]
+                : 1 + Math.min(dp[i-1][j-1],          // replace
+                      Math.min(dp[i-1][j], dp[i][j-1])); // delete, insert
+    return dp[m][n];
+}</code></pre>
+    <p class="cx">Time O(m·n) · Space O(m·n). Insight: the three predecessors map exactly to the three
+    edit operations — naming which cell is which operation is how you explain (and debug) the
+    recurrence under pressure.</p>
+  </details>
+
+  <h3>Drill 4 — state-machine DP <span class="lc">LeetCode 309 · Best Time to Buy/Sell with Cooldown</span></h3>
+  <p>Maximise profit with unlimited transactions, but a one-day cooldown after each sell.</p>
+  <details><summary>Hint</summary>
+    <p>Three states per day: <code>hold</code> (own a share), <code>sold</code> (just sold today),
+    <code>rest</code> (idle, free to buy). Transition between them day by day.</p>
+  </details>
+  <details><summary>Solution (Java)</summary>
+<pre><code>public int maxProfit(int[] prices) {
+    int hold = Integer.MIN_VALUE, sold = 0, rest = 0;
+    for (int p : prices) {
+        int prevSold = sold;
+        sold = hold + p;                      // sell today (was holding)
+        hold = Math.max(hold, rest - p);      // keep holding, or buy from rest
+        rest = Math.max(rest, prevSold);      // stay idle, or cooldown after a sale
+    }
+    return Math.max(sold, rest);              // never end while still holding
+}</code></pre>
+    <p class="cx">Time O(n) · Space O(1). Insight: modelling the problem as transitions between named
+    states is the unlock — once the three states and their legal moves are written down, the code is
+    a direct transcription. The whole stock-problem family is this pattern with different states.</p>
+  </details>
+
+  <h2>Self-check</h2>
+  <p>Classify each: 0/1 knapsack reverse-loop (D1), LIS with binary-search tails (D2), edit-distance
+  grid (D3), state-machine transitions (D4). The two highest-value takeaways: the
+  downward-vs-upward inner loop (0/1 vs unbounded), and "model it as states then transcribe" for any
+  stock/transaction problem.</p>
+
+  <div class="panel">
+    <h3>Primary source</h3>
+    <p>▸ <a href="https://neetcode.io/practice">NeetCode — 1-D &amp; 2-D DP</a>, plus
+    <a href="https://cp-algorithms.com/dynamic_programming/intro-to-dp.html">cp-algorithms — DP</a>
+    and the <a href="../../reference/0003-dp-framework.html">DP framework reference</a>.</p>
+  </div>
+
+  <div class="ask">
+    <strong>All four clean?</strong> After a 2–3 day gap, do the
+    <strong><a href="0033-interleaving-dp.html">Interleaving set</a></strong>. Want
+    <span class="lc">Word Break</span> or <span class="lc">Unique Paths</span> as extra
+    reps before moving on? Ask.
+  </div>
+
+  <footer>
+    <strong>Lesson 0032</strong> · DSA for L6/L7 Interviews ·
+    Next: <a href="0033-interleaving-dp.html">Interleaving — DP + Prior Patterns</a> →<br>
+    <a href="../../index.html">Course home</a> · <a href="0031-dynamic-programming.html">← Lesson 0031</a>
+  </footer>
+</body>
+</html>
