@@ -16,7 +16,10 @@ COURSE.graph = {
   "M9": "Backtracking",
   "M10": "Graphs",
   "M11": "Dynamic programming",
-  "M12": "Intervals and greedy"
+  "M12": "Intervals and greedy",
+  "M13": "Prefix sums and range queries",
+  "M14": "Strings",
+  "M15": "Number theory and math"
  },
  "topics": {
   "F01": {
@@ -411,6 +414,218 @@ COURSE.graph = {
     "F07"
    ],
    "href": "lessons/P17-intervals-and-greedy.html"
+  },
+  "P18": {
+   "title": "Prefix sums and difference arrays",
+   "module": "M13",
+   "prereqs": [
+    "F01",
+    "P01"
+   ],
+   "key_prereqs": [
+    "P01"
+   ],
+   "href": "lessons/P18-prefix-sums-and-difference-arrays.html"
+  },
+  "P19": {
+   "title": "Monotonic deque: sliding window extremes",
+   "module": "M3",
+   "prereqs": [
+    "P04",
+    "P07"
+   ],
+   "key_prereqs": [
+    "P07",
+    "P04"
+   ],
+   "href": "lessons/P19-monotonic-deque-sliding-window-extremes.html"
+  },
+  "P20": {
+   "title": "Fenwick tree (binary indexed tree)",
+   "module": "M13",
+   "prereqs": [
+    "P18",
+    "F02"
+   ],
+   "key_prereqs": [
+    "P18",
+    "F02"
+   ],
+   "href": "lessons/P20-fenwick-tree-binary-indexed-tree.html"
+  },
+  "P21": {
+   "title": "Segment tree, with lazy propagation",
+   "module": "M13",
+   "prereqs": [
+    "P20",
+    "F16"
+   ],
+   "key_prereqs": [
+    "F16",
+    "P20"
+   ],
+   "href": "lessons/P21-segment-tree-with-lazy-propagation.html"
+  },
+  "P22": {
+   "title": "Binary lifting and lowest common ancestor",
+   "module": "M7",
+   "prereqs": [
+    "P09",
+    "F02"
+   ],
+   "key_prereqs": [
+    "F02",
+    "P09"
+   ],
+   "href": "lessons/P22-binary-lifting-and-lowest-common-ancesto.html"
+  },
+  "P23": {
+   "title": "Tree DP and rerooting",
+   "module": "M7",
+   "prereqs": [
+    "P09",
+    "P16"
+   ],
+   "key_prereqs": [
+    "P16",
+    "P09"
+   ],
+   "href": "lessons/P23-tree-dp-and-rerooting.html"
+  },
+  "P24": {
+   "title": "Bitmask DP over subsets",
+   "module": "M11",
+   "prereqs": [
+    "P16",
+    "F14"
+   ],
+   "key_prereqs": [
+    "F14",
+    "P16"
+   ],
+   "href": "lessons/P24-bitmask-dp-over-subsets.html"
+  },
+  "P25": {
+   "title": "Interval DP",
+   "module": "M11",
+   "prereqs": [
+    "P16"
+   ],
+   "key_prereqs": [
+    "P16"
+   ],
+   "href": "lessons/P25-interval-dp.html"
+  },
+  "P26": {
+   "title": "Minimum spanning tree: Kruskal and Prim",
+   "module": "M10",
+   "prereqs": [
+    "P15",
+    "P10"
+   ],
+   "key_prereqs": [
+    "P15"
+   ],
+   "href": "lessons/P26-minimum-spanning-tree-kruskal-and-prim.html"
+  },
+  "P27": {
+   "title": "Bellman-Ford and Floyd-Warshall",
+   "module": "M10",
+   "prereqs": [
+    "P14"
+   ],
+   "key_prereqs": [
+    "P14"
+   ],
+   "href": "lessons/P27-bellman-ford-and-floyd-warshall.html"
+  },
+  "P28": {
+   "title": "Modular arithmetic and fast exponentiation",
+   "module": "M15",
+   "prereqs": [
+    "F01",
+    "F02"
+   ],
+   "key_prereqs": [
+    "F02"
+   ],
+   "href": "lessons/P28-modular-arithmetic-and-fast-exponentiati.html"
+  },
+  "P29": {
+   "title": "Sieve, factorisation and gcd",
+   "module": "M15",
+   "prereqs": [
+    "F01",
+    "F03"
+   ],
+   "key_prereqs": [
+    "F01"
+   ],
+   "href": "lessons/P29-sieve-factorisation-and-gcd.html"
+  },
+  "P30": {
+   "title": "String hashing",
+   "module": "M14",
+   "prereqs": [
+    "F11",
+    "P18",
+    "P28"
+   ],
+   "key_prereqs": [
+    "F11",
+    "P28"
+   ],
+   "href": "lessons/P30-string-hashing.html"
+  },
+  "P31": {
+   "title": "KMP and the Z-algorithm",
+   "module": "M14",
+   "prereqs": [
+    "F07"
+   ],
+   "key_prereqs": [
+    "F07"
+   ],
+   "href": "lessons/P31-kmp-and-the-z-algorithm.html"
+  },
+  "P32": {
+   "title": "Tries and bit tries",
+   "module": "M14",
+   "prereqs": [
+    "F16",
+    "F10"
+   ],
+   "key_prereqs": [
+    "F16"
+   ],
+   "href": "lessons/P32-tries-and-bit-tries.html"
+  },
+  "P33": {
+   "title": "Matrix exponentiation for linear recurrences",
+   "module": "M15",
+   "prereqs": [
+    "P28",
+    "F06"
+   ],
+   "key_prereqs": [
+    "P28",
+    "F06"
+   ],
+   "href": "lessons/P33-matrix-exponentiation-for-linear-recurre.html"
+  },
+  "P34": {
+   "title": "Meet in the middle",
+   "module": "M9",
+   "prereqs": [
+    "F14",
+    "P11",
+    "F12"
+   ],
+   "key_prereqs": [
+    "F14",
+    "P11"
+   ],
+   "href": "lessons/P34-meet-in-the-middle.html"
   }
  }
 };

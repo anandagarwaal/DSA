@@ -1,271 +1,1290 @@
 {
-  "about": "Prerequisite + encompassing graph for the course. prereqs = must be mastered before learning. key_prereqs = the prerequisites most directly used; remediated when this topic is failed. encompasses = {topic: weight 0-1}: practicing this topic implicitly practices that one (drives FIRe credit in tools/srs.py). kps = knowledge points, taught and quizzed one at a time. picture = the geometric/visual intuition that must be tested, not just the procedure.",
-  "modules": [
-    {"id": "F1", "title": "Foundations I - Cost and counting"},
-    {"id": "F2", "title": "Foundations II - Proving an algorithm is correct"},
-    {"id": "F3", "title": "Foundations III - What the machine actually does"},
-    {"id": "M1", "title": "Hashing"},
-    {"id": "M2", "title": "Two pointers"},
-    {"id": "M3", "title": "Sliding window"},
-    {"id": "M4", "title": "Binary search"},
-    {"id": "M5", "title": "Stacks and monotonic stack"},
-    {"id": "M6", "title": "Linked lists"},
-    {"id": "M7", "title": "Trees"},
-    {"id": "M8", "title": "Heaps and top-K"},
-    {"id": "M9", "title": "Backtracking"},
-    {"id": "M10", "title": "Graphs"},
-    {"id": "M11", "title": "Dynamic programming"},
-    {"id": "M12", "title": "Intervals and greedy"}
-  ],
-  "topics": [
-    {"id": "F01", "module": "F1", "title": "Big-O as a growth rate",
-     "prereqs": [], "key_prereqs": [], "encompasses": {},
-     "kps": ["Count basic operations as a function of n for a loop and a nested loop",
-             "Drop constants and lower-order terms, and say why they stop mattering as n grows",
-             "Rank growth classes 1, log n, n, n log n, n^2, 2^n, n! and estimate each at n = 10^5",
-             "Time vs extra space; the input itself does not count toward extra space",
-             "Map interview constraints to a target complexity (n <= 20, 10^3, 10^5, 10^9)"],
-     "picture": "Plot the curves: past some n the steeper curve stays above forever, whatever the constants. The 10^8 ops/sec budget is a horizontal line; each class crosses it at a different n."},
-    {"id": "F02", "module": "F1", "title": "Logarithms as repeated halving",
-     "prereqs": ["F01"], "key_prereqs": ["F01"], "encompasses": {"F01": 0.3},
-     "kps": ["log2 n = how many times n can be halved before reaching 1",
-             "Why the base does not matter inside Big-O (change of base is a constant factor)",
-             "Height of a complete binary tree with n leaves is log2 n",
-             "Recognise log factors in code: a loop that multiplies or divides its variable by 2"],
-     "picture": "A number line cut in half again and again; and a balanced tree whose levels double, so n leaves need only log n levels."},
-    {"id": "F03", "module": "F1", "title": "Arithmetic and geometric sums",
-     "prereqs": ["F01"], "key_prereqs": ["F01"], "encompasses": {"F01": 0.3},
-     "kps": ["1 + 2 + ... + n = n(n+1)/2 and why that makes 'for i, for j < i' O(n^2)",
-             "1 + 2 + 4 + ... + 2^k = 2^(k+1) - 1: the last term is bigger than all earlier terms combined",
-             "Why n + n/2 + n/4 + ... < 2n",
-             "Tell which of the two a loop is summing, from the code"],
-     "picture": "Arithmetic: a staircase of bars filling half of an n-by-n square. Geometric: each bar is taller than every bar before it put together, so the whole sum is less than twice the last bar."},
-    {"id": "F14", "module": "F1", "title": "Counting: subsets, permutations, combinations",
-     "prereqs": ["F01"], "key_prereqs": ["F01"], "encompasses": {},
-     "kps": ["2^n subsets: each element is in or out",
-             "n! orderings; n choose k selections, and why k! ordered picks collapse to one",
-             "Size of the output as a lower bound on running time",
-             "Estimate when 2^n or n! is feasible (n about 20 vs about 10)"],
-     "picture": "A binary decision tree: each level decides one element, so level n has 2^n leaves. Permutations: a tree whose branching factor shrinks n, n-1, ..., 1."},
-    {"id": "F07", "module": "F2", "title": "Loop invariants",
-     "prereqs": ["F01"], "key_prereqs": [], "encompasses": {},
-     "kps": ["State a property that is true before every iteration",
-             "Prove it holds initially, is maintained by one iteration, and gives the answer at termination",
-             "Use an invariant to find the bug in a wrong loop (off-by-one, wrong update order)",
-             "Termination: a quantity that strictly decreases and is bounded below"],
-     "picture": "The array split into a processed region, where the invariant holds, and an unprocessed region; each iteration moves the boundary by one."},
-    {"id": "F08", "module": "F2", "title": "Induction and recursive correctness",
-     "prereqs": ["F07"], "key_prereqs": ["F07"], "encompasses": {"F07": 0.3},
-     "kps": ["Base case + inductive step, and why together they cover every n",
-             "Strong induction: assume all smaller cases, as recursion does",
-             "The recursive leap of faith: trust the call on the smaller input, check the combine step",
-             "Find the missing or wrong base case in a recursive function"],
-     "picture": "Dominoes: the base case knocks the first; the step guarantees each one knocks the next."},
-    {"id": "F09", "module": "F2", "title": "Search-space elimination",
-     "prereqs": ["F07"], "key_prereqs": ["F07"], "encompasses": {"F07": 0.4},
-     "kps": ["Frame the problem as a search space (all pairs (i, j) with i < j as an upper-triangular grid)",
-             "Brute force visits every cell; a clever algorithm deletes whole rows or columns per step",
-             "Prove a deletion is safe: every discarded candidate cannot be the answer",
-             "Show a wrong move (e.g. moving the taller line in Container With Most Water) with a counterexample"],
-     "picture": "The n-by-n grid of pairs. In sorted two-sum, sum too small at (lo, hi) means every pair (lo, j <= hi) is too small too, so row lo is erased. Each step erases one row or one column, so n steps cover all n^2 cells."},
-    {"id": "F13", "module": "F2", "title": "Monotone predicates",
-     "prereqs": ["F07"], "key_prereqs": ["F07"], "encompasses": {},
-     "kps": ["A predicate over an ordered domain that flips false to true exactly once",
-             "Find the monotone predicate hidden in a min/max word problem (can we finish in speed k?)",
-             "What breaks when the predicate is not monotone: counterexample",
-             "First-true vs last-false framing"],
-     "picture": "A row F F F F T T T: the answer is the boundary, and checking one cell tells you which side of the boundary you are on."},
-    {"id": "F10", "module": "F3", "title": "Memory model: arrays, references, boxing",
-     "prereqs": ["F01"], "key_prereqs": ["F01"], "encompasses": {},
-     "kps": ["An array is contiguous, so index i is at base + i*size: O(1) access",
-             "A linked node is a separate object reached through a pointer",
-             "Java boxing: Integer vs int, HashMap<Integer,Integer> memory and speed cost",
-             "Cache locality: why an array scan beats a pointer chase at the same Big-O"],
-     "picture": "A row of adjacent boxes vs boxes scattered across memory joined by arrows; a cache line pulls in neighbours for free only in the first case."},
-    {"id": "F04", "module": "F3", "title": "Amortized analysis",
-     "prereqs": ["F03", "F10"], "key_prereqs": ["F03"], "encompasses": {"F03": 0.5},
-     "kps": ["Amortized cost = total cost of a sequence / number of operations (not an average over random inputs)",
-             "Doubling array: total copy cost for n appends is 1 + 2 + 4 + ... < 2n, so O(1) amortized",
-             "Growing by a constant k instead: total copy cost is about n^2/(2k), so O(n) amortized; prove it",
-             "Accounting/banker's view: overcharge cheap ops to prepay the expensive one",
-             "Recognise the 'each element enters and leaves at most once' argument (stacks, windows)"],
-     "picture": "A bar chart of per-append cost: mostly 1s with tall spikes at powers of two. Flatten the spikes over the cheap bars before them and the area under the chart is at most 3 per bar."},
-    {"id": "F11", "module": "F3", "title": "How a hash table works",
-     "prereqs": ["F04", "F10"], "key_prereqs": ["F04", "F10"], "encompasses": {"F04": 0.4, "F10": 0.3},
-     "kps": ["Hash function maps a key to a bucket index; equal keys must hash equally (equals/hashCode)",
-             "Collisions and chaining; load factor = entries / buckets",
-             "Resize at a load-factor threshold, and why that keeps O(1) expected via amortization",
-             "Expected vs worst case: adversarial keys, Java 8 treeified buckets",
-             "When an array beats a map: small bounded key range (e.g. 26 letters)"],
-     "picture": "A row of buckets with short chains hanging off them; when the average chain passes the threshold, double the row and redistribute."},
-    {"id": "F16", "module": "F3", "title": "Tree anatomy",
-     "prereqs": ["F02", "F10"], "key_prereqs": ["F02"], "encompasses": {"F02": 0.3},
-     "kps": ["Nodes, edges = n - 1, depth, height",
-             "Balanced height log n vs skewed height n: same n, different shape",
-             "Complete binary tree stored in an array: children at 2i+1 and 2i+2",
-             "BST ordering property and what it lets you skip"],
-     "picture": "The same 7 values drawn as a bushy tree of height 3 and as a vine of height 7."},
-    {"id": "F15", "module": "F3", "title": "Graph representation",
-     "prereqs": ["F01", "F10"], "key_prereqs": ["F10"], "encompasses": {},
-     "kps": ["Vertices, edges, directed vs undirected, weighted",
-             "Adjacency list vs matrix: space V+E vs V^2, and when each wins",
-             "Why a full traversal is O(V + E), not O(V * E)",
-             "Grids as implicit graphs"],
-     "picture": "Each edge gets looked at a constant number of times: sum of degrees = 2E."},
-    {"id": "F05", "module": "F3", "title": "Recursion and the call stack",
-     "prereqs": ["F08", "F10"], "key_prereqs": ["F08"], "encompasses": {"F08": 0.4},
-     "kps": ["Each call is a stack frame; the frame holds locals and a return point",
-             "Space = maximum depth of the call stack, not the total number of calls",
-             "Trace a recursion as a tree of calls",
-             "Stack overflow at depth about 10^4 in Java; when to convert to iteration"],
-     "picture": "The recursion tree traversed depth-first; the live stack is only the path from root to the current node."},
-    {"id": "F06", "module": "F3", "title": "Recurrences via recursion trees",
-     "prereqs": ["F02", "F03", "F05"], "key_prereqs": ["F03", "F05"], "encompasses": {"F02": 0.5, "F03": 0.5, "F05": 0.5},
-     "kps": ["T(n) = T(n/2) + 1: one path of log n levels, so log n",
-             "T(n) = 2T(n/2) + n: log n levels of n work each, so n log n",
-             "T(n) = 2T(n-1) + 1: doubling levels, so 2^n (geometric sum dominated by the last level)",
-             "Work per level x number of levels; notice when one level dominates"],
-     "picture": "Draw the tree and write the work done at each level down the right-hand side; add up the column."},
-    {"id": "F12", "module": "F3", "title": "Sorting cost and the n log n lower bound",
-     "prereqs": ["F02", "F06"], "key_prereqs": ["F02"], "encompasses": {"F02": 0.4},
-     "kps": ["Merge sort as T(n) = 2T(n/2) + n",
-             "A comparison sort is a decision tree with n! leaves; its height is at least log(n!), about n log n",
-             "Counting sort beats n log n by not comparing, and needs a bounded key range",
-             "When sorting destroys information you need (original indices)"],
-     "picture": "A binary decision tree that must have a leaf for each of the n! orderings, so it cannot be shallower than log2(n!)."},
-
-    {"id": "P01", "module": "M1", "title": "Hash map pattern: complement lookup and counting",
-     "prereqs": ["F11"], "key_prereqs": ["F11"], "encompasses": {"F11": 0.5, "F01": 0.3},
-     "lessons": ["lessons/0001-hash-map-pattern.html", "lessons/0002-hashing-more-problems.html", "lessons/0003-interleaving-hashing.html"],
-     "kps": ["Trade space for time: remember what you have seen",
-             "Complement lookup (two-sum) and why one pass suffices",
-             "Frequency maps and grouping by a canonical key (anagrams)",
-             "Prefix sums + hash map for subarray-sum = k"],
-     "picture": "Walking left to right with a notebook: every earlier element is one O(1) lookup away."},
-    {"id": "P02", "module": "M2", "title": "Converging two pointers",
-     "prereqs": ["F09", "F12"], "key_prereqs": ["F09"], "encompasses": {"F09": 0.7, "F07": 0.3},
-     "lessons": ["lessons/0004-two-pointers.html", "lessons/0005-two-pointers-more-problems.html", "lessons/0006-interleaving-two-pointers.html"],
-     "kps": ["Sorted two-sum and its elimination proof",
-             "3Sum: fix one index, converge on the rest; dedup without losing answers",
-             "Container With Most Water: why the shorter line is the one to move",
-             "Palindrome scans"],
-     "picture": "The pair grid from F09, with the pointers walking a staircase path from the top-right corner."},
-    {"id": "P03", "module": "M2", "title": "Same-direction pointers (read/write, fast/slow)",
-     "prereqs": ["F07"], "key_prereqs": ["F07"], "encompasses": {"F07": 0.5},
-     "lessons": ["lessons/0004-two-pointers.html", "lessons/0005-two-pointers-more-problems.html"],
-     "kps": ["Invariant: nums[0..slow) is the kept output so far",
-             "In-place dedup / remove element / move zeros",
-             "Merging two sorted sequences"],
-     "picture": "Two arrows moving right: everything left of slow is finished output, everything between slow and fast is garbage."},
-    {"id": "P04", "module": "M3", "title": "Sliding window",
-     "prereqs": ["P01", "P03", "F04"], "key_prereqs": ["F04", "P03"], "encompasses": {"P01": 0.5, "P03": 0.5, "F04": 0.5},
-     "lessons": ["lessons/0007-sliding-window.html", "lessons/0008-sliding-window-more-problems.html", "lessons/0009-interleaving-sliding-window.html"],
-     "kps": ["Fixed window: add the entering element, remove the leaving one",
-             "Variable window: grow right, shrink left while the window is invalid",
-             "Why it is O(n): each index enters once and leaves once (amortized)",
-             "When windows fail: negative numbers break the 'shrinking only helps' property"],
-     "picture": "A caterpillar crawling along the array: the head and tail only ever move right, so together they take at most 2n steps."},
-    {"id": "P05", "module": "M4", "title": "Binary search on a sorted array",
-     "prereqs": ["F02", "F13"], "key_prereqs": ["F13", "F07"], "encompasses": {"F13": 0.5, "F02": 0.4, "F07": 0.3},
-     "lessons": ["lessons/0010-binary-search.html"],
-     "kps": ["Loop invariant for lo/hi (answer is in [lo, hi])",
-             "lo < hi vs lo <= hi, and mid rounding that avoids infinite loops",
-             "Lower bound / upper bound / first true",
-             "Rotated sorted array: which half is sorted?"],
-     "picture": "The interval [lo, hi] on a number line halves each step, and the invariant says the answer never leaves it."},
-    {"id": "P06", "module": "M4", "title": "Binary search on the answer space",
-     "prereqs": ["P05"], "key_prereqs": ["F13", "P05"], "encompasses": {"P05": 0.7, "F13": 0.6},
-     "lessons": ["lessons/0011-binary-search-more-problems.html", "lessons/0012-interleaving-binary-search.html"],
-     "kps": ["Spot 'minimise the maximum' / 'smallest k such that'",
-             "Write the feasibility check and prove it is monotone",
-             "Complexity = log(range) x cost of the check"],
-     "picture": "The F13 boolean row, but the domain is candidate answers, not array positions."},
-    {"id": "P07", "module": "M5", "title": "Stacks and monotonic stack",
-     "prereqs": ["F04", "F07"], "key_prereqs": ["F04", "F07"], "encompasses": {"F04": 0.5, "F07": 0.4},
-     "lessons": ["lessons/0013-stacks-monotonic.html", "lessons/0014-stacks-more-problems.html", "lessons/0015-interleaving-stacks.html"],
-     "kps": ["LIFO matching (parentheses) and why a stack is the right shape",
-             "Monotonic stack invariant: the stack stays sorted",
-             "Next greater element: what a pop means",
-             "O(n) total despite the inner while loop (amortized)"],
-     "picture": "Bars of different heights: a new tall bar hides every shorter bar to its left, which is exactly what gets popped."},
-    {"id": "P08", "module": "M6", "title": "Linked-list manipulation",
-     "prereqs": ["F10", "P03"], "key_prereqs": ["F10", "P03"], "encompasses": {"P03": 0.4, "F10": 0.3},
-     "lessons": ["lessons/0016-linked-lists.html", "lessons/0017-linked-lists-more-problems.html", "lessons/0018-interleaving-linked-lists.html"],
-     "kps": ["Dummy head node and why it removes edge cases",
-             "In-place reversal: three pointers and the order of assignments",
-             "Floyd cycle detection and why fast catches slow",
-             "Finding the middle / k-th from the end"],
-     "picture": "Draw boxes and arrows; rewire one arrow at a time and check nothing gets orphaned."},
-    {"id": "P09", "module": "M7", "title": "Tree DFS and BFS",
-     "prereqs": ["F05", "F16"], "key_prereqs": ["F05", "F08"], "encompasses": {"F05": 0.5, "F16": 0.5, "F08": 0.4},
-     "lessons": ["lessons/0019-trees.html", "lessons/0020-trees-more-problems.html", "lessons/0021-interleaving-trees.html"],
-     "kps": ["Recursive DFS: define what the function returns for a subtree",
-             "Top-down (pass state down) vs bottom-up (return info up)",
-             "BFS by levels with a queue",
-             "BST problems using the ordering property; validate BST with bounds"],
-     "picture": "Each subtree is a smaller copy of the problem; the answer at a node is combined from its children's answers."},
-    {"id": "P10", "module": "M8", "title": "Heaps and top-K",
-     "prereqs": ["F16", "F02"], "key_prereqs": ["F16"], "encompasses": {"F16": 0.4, "F02": 0.3},
-     "lessons": ["lessons/0022-heaps-top-k.html", "lessons/0023-heaps-more-problems.html", "lessons/0024-interleaving-heaps.html"],
-     "kps": ["Heap property and sift up/down in O(log n)",
-             "Top-K with a size-k min-heap: why a min-heap for the largest K",
-             "Merge K sorted lists",
-             "Two heaps for a running median"],
-     "picture": "A complete tree where every parent beats its children; the size-k min-heap is a bouncer that evicts the weakest of the current top k."},
-    {"id": "P11", "module": "M9", "title": "Backtracking",
-     "prereqs": ["F05", "F14"], "key_prereqs": ["F14", "F05"], "encompasses": {"F14": 0.5, "F05": 0.5},
-     "lessons": ["lessons/0025-backtracking.html", "lessons/0026-backtracking-more-problems.html", "lessons/0027-interleaving-backtracking.html"],
-     "kps": ["Choose / explore / un-choose",
-             "Subsets, permutations, combinations as decision trees",
-             "Pruning: cut a branch as soon as it cannot lead to a valid answer",
-             "Complexity from the size of the decision tree"],
-     "picture": "The F14 decision tree, walked depth-first, with dead branches cut off."},
-    {"id": "P12", "module": "M10", "title": "Graph BFS/DFS and connected components",
-     "prereqs": ["F15", "P09"], "key_prereqs": ["F15", "P09"], "encompasses": {"P09": 0.5, "F15": 0.5},
-     "lessons": ["lessons/0028-graphs.html", "lessons/0029-graphs-more-problems.html"],
-     "kps": ["Visited set: why trees do not need one and graphs do",
-             "BFS gives shortest paths in unweighted graphs: proof by layers",
-             "Grid flood fill / number of islands",
-             "Multi-source BFS"],
-     "picture": "BFS as ripples in a pond: layer d is exactly the set of nodes at distance d."},
-    {"id": "P13", "module": "M10", "title": "Topological sort",
-     "prereqs": ["P12"], "key_prereqs": ["P12"], "encompasses": {"P12": 0.5},
-     "lessons": ["lessons/0028-graphs.html", "lessons/0030-interleaving-graphs.html"],
-     "kps": ["Kahn's algorithm: repeatedly remove in-degree-0 nodes",
-             "Cycle detection when nodes remain",
-             "DFS post-order reversed"],
-     "picture": "Peel off nodes with no incoming arrows, layer by layer."},
-    {"id": "P14", "module": "M10", "title": "Dijkstra",
-     "prereqs": ["P12", "P10"], "key_prereqs": ["P10", "P12"], "encompasses": {"P10": 0.5, "P12": 0.5},
-     "lessons": ["lessons/0028-graphs.html", "lessons/0029-graphs-more-problems.html"],
-     "kps": ["Greedy settle-the-closest and why non-negative weights make it safe",
-             "Lazy deletion with a PriorityQueue",
-             "Counterexample with a negative edge"],
-     "picture": "A growing ball of settled nodes; the frontier node closest to the source can never later be reached more cheaply."},
-    {"id": "P15", "module": "M10", "title": "Union-find",
-     "prereqs": ["F16", "F15"], "key_prereqs": ["F16"], "encompasses": {"F16": 0.3},
-     "lessons": ["lessons/0028-graphs.html", "lessons/0029-graphs-more-problems.html"],
-     "kps": ["Parent pointers forming a forest",
-             "Path compression and union by rank; near-constant amortized cost",
-             "When to use it instead of BFS (incremental connectivity)"],
-     "picture": "Trees of people pointing to their group leader; compression flattens the trees."},
-    {"id": "P16", "module": "M11", "title": "Dynamic programming",
-     "prereqs": ["F06", "P11"], "key_prereqs": ["F08", "F06", "P11"], "encompasses": {"F05": 0.5, "F08": 0.5, "F06": 0.4},
-     "lessons": ["lessons/0031-dynamic-programming.html", "lessons/0032-dp-more-problems.html", "lessons/0033-interleaving-dp.html"],
-     "kps": ["Overlapping subproblems: spot repeated nodes in the recursion tree",
-             "State definition: what exactly does dp[i] mean, in words",
-             "Recurrence from the last decision; prove it by induction",
-             "Memoization vs tabulation and fill order",
-             "Complexity = number of states x work per state",
-             "DP vs greedy: when a local choice can be wrong (counterexample)"],
-     "picture": "The exponential recursion tree collapses into a small DAG once identical subtrees are merged."},
-    {"id": "P17", "module": "M12", "title": "Intervals and greedy",
-     "prereqs": ["F12", "F07"], "key_prereqs": ["F12", "F07"], "encompasses": {"F12": 0.4, "F07": 0.4},
-     "lessons": ["lessons/0034-intervals-greedy.html", "lessons/0035-intervals-greedy-more-problems.html", "lessons/0036-interleaving-final.html"],
-     "kps": ["Sort by start to merge; sort by end to schedule the most intervals",
-             "Exchange argument: swap an optimal solution's first choice for the greedy one without losing",
-             "Sweep line / meeting rooms with a heap",
-             "Counterexample for the wrong sort key"],
-     "picture": "Intervals as segments on a timeline; the greedy choice leaves the most room to the right."}
-  ]
+ "about": "Prerequisite + encompassing graph for the course. prereqs = must be mastered before learning. key_prereqs = the prerequisites most directly used; remediated when this topic is failed. encompasses = {topic: weight 0-1}: practicing this topic implicitly practices that one (drives FIRe credit in tools/srs.py). kps = knowledge points, taught and quizzed one at a time. picture = the geometric/visual intuition that must be tested, not just the procedure.",
+ "modules": [
+  {
+   "id": "F1",
+   "title": "Foundations I - Cost and counting"
+  },
+  {
+   "id": "F2",
+   "title": "Foundations II - Proving an algorithm is correct"
+  },
+  {
+   "id": "F3",
+   "title": "Foundations III - What the machine actually does"
+  },
+  {
+   "id": "M1",
+   "title": "Hashing"
+  },
+  {
+   "id": "M2",
+   "title": "Two pointers"
+  },
+  {
+   "id": "M3",
+   "title": "Sliding window"
+  },
+  {
+   "id": "M4",
+   "title": "Binary search"
+  },
+  {
+   "id": "M5",
+   "title": "Stacks and monotonic stack"
+  },
+  {
+   "id": "M6",
+   "title": "Linked lists"
+  },
+  {
+   "id": "M7",
+   "title": "Trees"
+  },
+  {
+   "id": "M8",
+   "title": "Heaps and top-K"
+  },
+  {
+   "id": "M9",
+   "title": "Backtracking"
+  },
+  {
+   "id": "M10",
+   "title": "Graphs"
+  },
+  {
+   "id": "M11",
+   "title": "Dynamic programming"
+  },
+  {
+   "id": "M12",
+   "title": "Intervals and greedy"
+  },
+  {
+   "id": "M13",
+   "title": "Prefix sums and range queries"
+  },
+  {
+   "id": "M14",
+   "title": "Strings"
+  },
+  {
+   "id": "M15",
+   "title": "Number theory and math"
+  }
+ ],
+ "topics": [
+  {
+   "id": "F01",
+   "module": "F1",
+   "title": "Big-O as a growth rate",
+   "prereqs": [],
+   "key_prereqs": [],
+   "encompasses": {},
+   "kps": [
+    "Count basic operations as a function of n for a loop and a nested loop",
+    "Drop constants and lower-order terms, and say why they stop mattering as n grows",
+    "Rank growth classes 1, log n, n, n log n, n^2, 2^n, n! and estimate each at n = 10^5",
+    "Time vs extra space; the input itself does not count toward extra space",
+    "Map interview constraints to a target complexity (n <= 20, 10^3, 10^5, 10^9)"
+   ],
+   "picture": "Plot the curves: past some n the steeper curve stays above forever, whatever the constants. The 10^8 ops/sec budget is a horizontal line; each class crosses it at a different n."
+  },
+  {
+   "id": "F02",
+   "module": "F1",
+   "title": "Logarithms as repeated halving",
+   "prereqs": [
+    "F01"
+   ],
+   "key_prereqs": [
+    "F01"
+   ],
+   "encompasses": {
+    "F01": 0.3
+   },
+   "kps": [
+    "log2 n = how many times n can be halved before reaching 1",
+    "Why the base does not matter inside Big-O (change of base is a constant factor)",
+    "Height of a complete binary tree with n leaves is log2 n",
+    "Recognise log factors in code: a loop that multiplies or divides its variable by 2"
+   ],
+   "picture": "A number line cut in half again and again; and a balanced tree whose levels double, so n leaves need only log n levels."
+  },
+  {
+   "id": "F03",
+   "module": "F1",
+   "title": "Arithmetic and geometric sums",
+   "prereqs": [
+    "F01"
+   ],
+   "key_prereqs": [
+    "F01"
+   ],
+   "encompasses": {
+    "F01": 0.3
+   },
+   "kps": [
+    "1 + 2 + ... + n = n(n+1)/2 and why that makes 'for i, for j < i' O(n^2)",
+    "1 + 2 + 4 + ... + 2^k = 2^(k+1) - 1: the last term is bigger than all earlier terms combined",
+    "Why n + n/2 + n/4 + ... < 2n",
+    "Tell which of the two a loop is summing, from the code"
+   ],
+   "picture": "Arithmetic: a staircase of bars filling half of an n-by-n square. Geometric: each bar is taller than every bar before it put together, so the whole sum is less than twice the last bar."
+  },
+  {
+   "id": "F14",
+   "module": "F1",
+   "title": "Counting: subsets, permutations, combinations",
+   "prereqs": [
+    "F01"
+   ],
+   "key_prereqs": [
+    "F01"
+   ],
+   "encompasses": {},
+   "kps": [
+    "2^n subsets: each element is in or out",
+    "n! orderings; n choose k selections, and why k! ordered picks collapse to one",
+    "Size of the output as a lower bound on running time",
+    "Estimate when 2^n or n! is feasible (n about 20 vs about 10)"
+   ],
+   "picture": "A binary decision tree: each level decides one element, so level n has 2^n leaves. Permutations: a tree whose branching factor shrinks n, n-1, ..., 1."
+  },
+  {
+   "id": "F07",
+   "module": "F2",
+   "title": "Loop invariants",
+   "prereqs": [
+    "F01"
+   ],
+   "key_prereqs": [],
+   "encompasses": {},
+   "kps": [
+    "State a property that is true before every iteration",
+    "Prove it holds initially, is maintained by one iteration, and gives the answer at termination",
+    "Use an invariant to find the bug in a wrong loop (off-by-one, wrong update order)",
+    "Termination: a quantity that strictly decreases and is bounded below"
+   ],
+   "picture": "The array split into a processed region, where the invariant holds, and an unprocessed region; each iteration moves the boundary by one."
+  },
+  {
+   "id": "F08",
+   "module": "F2",
+   "title": "Induction and recursive correctness",
+   "prereqs": [
+    "F07"
+   ],
+   "key_prereqs": [
+    "F07"
+   ],
+   "encompasses": {
+    "F07": 0.3
+   },
+   "kps": [
+    "Base case + inductive step, and why together they cover every n",
+    "Strong induction: assume all smaller cases, as recursion does",
+    "The recursive leap of faith: trust the call on the smaller input, check the combine step",
+    "Find the missing or wrong base case in a recursive function"
+   ],
+   "picture": "Dominoes: the base case knocks the first; the step guarantees each one knocks the next."
+  },
+  {
+   "id": "F09",
+   "module": "F2",
+   "title": "Search-space elimination",
+   "prereqs": [
+    "F07"
+   ],
+   "key_prereqs": [
+    "F07"
+   ],
+   "encompasses": {
+    "F07": 0.4
+   },
+   "kps": [
+    "Frame the problem as a search space (all pairs (i, j) with i < j as an upper-triangular grid)",
+    "Brute force visits every cell; a clever algorithm deletes whole rows or columns per step",
+    "Prove a deletion is safe: every discarded candidate cannot be the answer",
+    "Show a wrong move (e.g. moving the taller line in Container With Most Water) with a counterexample"
+   ],
+   "picture": "The n-by-n grid of pairs. In sorted two-sum, sum too small at (lo, hi) means every pair (lo, j <= hi) is too small too, so row lo is erased. Each step erases one row or one column, so n steps cover all n^2 cells."
+  },
+  {
+   "id": "F13",
+   "module": "F2",
+   "title": "Monotone predicates",
+   "prereqs": [
+    "F07"
+   ],
+   "key_prereqs": [
+    "F07"
+   ],
+   "encompasses": {},
+   "kps": [
+    "A predicate over an ordered domain that flips false to true exactly once",
+    "Find the monotone predicate hidden in a min/max word problem (can we finish in speed k?)",
+    "What breaks when the predicate is not monotone: counterexample",
+    "First-true vs last-false framing"
+   ],
+   "picture": "A row F F F F T T T: the answer is the boundary, and checking one cell tells you which side of the boundary you are on."
+  },
+  {
+   "id": "F10",
+   "module": "F3",
+   "title": "Memory model: arrays, references, boxing",
+   "prereqs": [
+    "F01"
+   ],
+   "key_prereqs": [
+    "F01"
+   ],
+   "encompasses": {},
+   "kps": [
+    "An array is contiguous, so index i is at base + i*size: O(1) access",
+    "A linked node is a separate object reached through a pointer",
+    "Java boxing: Integer vs int, HashMap<Integer,Integer> memory and speed cost",
+    "Cache locality: why an array scan beats a pointer chase at the same Big-O"
+   ],
+   "picture": "A row of adjacent boxes vs boxes scattered across memory joined by arrows; a cache line pulls in neighbours for free only in the first case."
+  },
+  {
+   "id": "F04",
+   "module": "F3",
+   "title": "Amortized analysis",
+   "prereqs": [
+    "F03",
+    "F10"
+   ],
+   "key_prereqs": [
+    "F03"
+   ],
+   "encompasses": {
+    "F03": 0.5
+   },
+   "kps": [
+    "Amortized cost = total cost of a sequence / number of operations (not an average over random inputs)",
+    "Doubling array: total copy cost for n appends is 1 + 2 + 4 + ... < 2n, so O(1) amortized",
+    "Growing by a constant k instead: total copy cost is about n^2/(2k), so O(n) amortized; prove it",
+    "Accounting/banker's view: overcharge cheap ops to prepay the expensive one",
+    "Recognise the 'each element enters and leaves at most once' argument (stacks, windows)"
+   ],
+   "picture": "A bar chart of per-append cost: mostly 1s with tall spikes at powers of two. Flatten the spikes over the cheap bars before them and the area under the chart is at most 3 per bar."
+  },
+  {
+   "id": "F11",
+   "module": "F3",
+   "title": "How a hash table works",
+   "prereqs": [
+    "F04",
+    "F10"
+   ],
+   "key_prereqs": [
+    "F04",
+    "F10"
+   ],
+   "encompasses": {
+    "F04": 0.4,
+    "F10": 0.3
+   },
+   "kps": [
+    "Hash function maps a key to a bucket index; equal keys must hash equally (equals/hashCode)",
+    "Collisions and chaining; load factor = entries / buckets",
+    "Resize at a load-factor threshold, and why that keeps O(1) expected via amortization",
+    "Expected vs worst case: adversarial keys, Java 8 treeified buckets",
+    "When an array beats a map: small bounded key range (e.g. 26 letters)"
+   ],
+   "picture": "A row of buckets with short chains hanging off them; when the average chain passes the threshold, double the row and redistribute."
+  },
+  {
+   "id": "F16",
+   "module": "F3",
+   "title": "Tree anatomy",
+   "prereqs": [
+    "F02",
+    "F10"
+   ],
+   "key_prereqs": [
+    "F02"
+   ],
+   "encompasses": {
+    "F02": 0.3
+   },
+   "kps": [
+    "Nodes, edges = n - 1, depth, height",
+    "Balanced height log n vs skewed height n: same n, different shape",
+    "Complete binary tree stored in an array: children at 2i+1 and 2i+2",
+    "BST ordering property and what it lets you skip"
+   ],
+   "picture": "The same 7 values drawn as a bushy tree of height 3 and as a vine of height 7."
+  },
+  {
+   "id": "F15",
+   "module": "F3",
+   "title": "Graph representation",
+   "prereqs": [
+    "F01",
+    "F10"
+   ],
+   "key_prereqs": [
+    "F10"
+   ],
+   "encompasses": {},
+   "kps": [
+    "Vertices, edges, directed vs undirected, weighted",
+    "Adjacency list vs matrix: space V+E vs V^2, and when each wins",
+    "Why a full traversal is O(V + E), not O(V * E)",
+    "Grids as implicit graphs"
+   ],
+   "picture": "Each edge gets looked at a constant number of times: sum of degrees = 2E."
+  },
+  {
+   "id": "F05",
+   "module": "F3",
+   "title": "Recursion and the call stack",
+   "prereqs": [
+    "F08",
+    "F10"
+   ],
+   "key_prereqs": [
+    "F08"
+   ],
+   "encompasses": {
+    "F08": 0.4
+   },
+   "kps": [
+    "Each call is a stack frame; the frame holds locals and a return point",
+    "Space = maximum depth of the call stack, not the total number of calls",
+    "Trace a recursion as a tree of calls",
+    "Stack overflow at depth about 10^4 in Java; when to convert to iteration"
+   ],
+   "picture": "The recursion tree traversed depth-first; the live stack is only the path from root to the current node."
+  },
+  {
+   "id": "F06",
+   "module": "F3",
+   "title": "Recurrences via recursion trees",
+   "prereqs": [
+    "F02",
+    "F03",
+    "F05"
+   ],
+   "key_prereqs": [
+    "F03",
+    "F05"
+   ],
+   "encompasses": {
+    "F02": 0.5,
+    "F03": 0.5,
+    "F05": 0.5
+   },
+   "kps": [
+    "T(n) = T(n/2) + 1: one path of log n levels, so log n",
+    "T(n) = 2T(n/2) + n: log n levels of n work each, so n log n",
+    "T(n) = 2T(n-1) + 1: doubling levels, so 2^n (geometric sum dominated by the last level)",
+    "Work per level x number of levels; notice when one level dominates"
+   ],
+   "picture": "Draw the tree and write the work done at each level down the right-hand side; add up the column."
+  },
+  {
+   "id": "F12",
+   "module": "F3",
+   "title": "Sorting cost and the n log n lower bound",
+   "prereqs": [
+    "F02",
+    "F06"
+   ],
+   "key_prereqs": [
+    "F02"
+   ],
+   "encompasses": {
+    "F02": 0.4
+   },
+   "kps": [
+    "Merge sort as T(n) = 2T(n/2) + n",
+    "A comparison sort is a decision tree with n! leaves; its height is at least log(n!), about n log n",
+    "Counting sort beats n log n by not comparing, and needs a bounded key range",
+    "When sorting destroys information you need (original indices)"
+   ],
+   "picture": "A binary decision tree that must have a leaf for each of the n! orderings, so it cannot be shallower than log2(n!)."
+  },
+  {
+   "id": "P01",
+   "module": "M1",
+   "title": "Hash map pattern: complement lookup and counting",
+   "prereqs": [
+    "F11"
+   ],
+   "key_prereqs": [
+    "F11"
+   ],
+   "encompasses": {
+    "F11": 0.5,
+    "F01": 0.3
+   },
+   "lessons": [
+    "lessons/0001-hash-map-pattern.html",
+    "lessons/0002-hashing-more-problems.html",
+    "lessons/0003-interleaving-hashing.html"
+   ],
+   "kps": [
+    "Trade space for time: remember what you have seen",
+    "Complement lookup (two-sum) and why one pass suffices",
+    "Frequency maps and grouping by a canonical key (anagrams)",
+    "Prefix sums + hash map for subarray-sum = k"
+   ],
+   "picture": "Walking left to right with a notebook: every earlier element is one O(1) lookup away."
+  },
+  {
+   "id": "P02",
+   "module": "M2",
+   "title": "Converging two pointers",
+   "prereqs": [
+    "F09",
+    "F12"
+   ],
+   "key_prereqs": [
+    "F09"
+   ],
+   "encompasses": {
+    "F09": 0.7,
+    "F07": 0.3
+   },
+   "lessons": [
+    "lessons/0004-two-pointers.html",
+    "lessons/0005-two-pointers-more-problems.html",
+    "lessons/0006-interleaving-two-pointers.html"
+   ],
+   "kps": [
+    "Sorted two-sum and its elimination proof",
+    "3Sum: fix one index, converge on the rest; dedup without losing answers",
+    "Container With Most Water: why the shorter line is the one to move",
+    "Palindrome scans"
+   ],
+   "picture": "The pair grid from F09, with the pointers walking a staircase path from the top-right corner."
+  },
+  {
+   "id": "P03",
+   "module": "M2",
+   "title": "Same-direction pointers (read/write, fast/slow)",
+   "prereqs": [
+    "F07"
+   ],
+   "key_prereqs": [
+    "F07"
+   ],
+   "encompasses": {
+    "F07": 0.5
+   },
+   "lessons": [
+    "lessons/0004-two-pointers.html",
+    "lessons/0005-two-pointers-more-problems.html"
+   ],
+   "kps": [
+    "Invariant: nums[0..slow) is the kept output so far",
+    "In-place dedup / remove element / move zeros",
+    "Merging two sorted sequences"
+   ],
+   "picture": "Two arrows moving right: everything left of slow is finished output, everything between slow and fast is garbage."
+  },
+  {
+   "id": "P04",
+   "module": "M3",
+   "title": "Sliding window",
+   "prereqs": [
+    "P01",
+    "P03",
+    "F04"
+   ],
+   "key_prereqs": [
+    "F04",
+    "P03"
+   ],
+   "encompasses": {
+    "P01": 0.5,
+    "P03": 0.5,
+    "F04": 0.5
+   },
+   "lessons": [
+    "lessons/0007-sliding-window.html",
+    "lessons/0008-sliding-window-more-problems.html",
+    "lessons/0009-interleaving-sliding-window.html"
+   ],
+   "kps": [
+    "Fixed window: add the entering element, remove the leaving one",
+    "Variable window: grow right, shrink left while the window is invalid",
+    "Why it is O(n): each index enters once and leaves once (amortized)",
+    "When windows fail: negative numbers break the 'shrinking only helps' property"
+   ],
+   "picture": "A caterpillar crawling along the array: the head and tail only ever move right, so together they take at most 2n steps."
+  },
+  {
+   "id": "P05",
+   "module": "M4",
+   "title": "Binary search on a sorted array",
+   "prereqs": [
+    "F02",
+    "F13"
+   ],
+   "key_prereqs": [
+    "F13",
+    "F07"
+   ],
+   "encompasses": {
+    "F13": 0.5,
+    "F02": 0.4,
+    "F07": 0.3
+   },
+   "lessons": [
+    "lessons/0010-binary-search.html"
+   ],
+   "kps": [
+    "Loop invariant for lo/hi (answer is in [lo, hi])",
+    "lo < hi vs lo <= hi, and mid rounding that avoids infinite loops",
+    "Lower bound / upper bound / first true",
+    "Rotated sorted array: which half is sorted?"
+   ],
+   "picture": "The interval [lo, hi] on a number line halves each step, and the invariant says the answer never leaves it."
+  },
+  {
+   "id": "P06",
+   "module": "M4",
+   "title": "Binary search on the answer space",
+   "prereqs": [
+    "P05"
+   ],
+   "key_prereqs": [
+    "F13",
+    "P05"
+   ],
+   "encompasses": {
+    "P05": 0.7,
+    "F13": 0.6
+   },
+   "lessons": [
+    "lessons/0011-binary-search-more-problems.html",
+    "lessons/0012-interleaving-binary-search.html"
+   ],
+   "kps": [
+    "Spot 'minimise the maximum' / 'smallest k such that'",
+    "Write the feasibility check and prove it is monotone",
+    "Complexity = log(range) x cost of the check"
+   ],
+   "picture": "The F13 boolean row, but the domain is candidate answers, not array positions."
+  },
+  {
+   "id": "P07",
+   "module": "M5",
+   "title": "Stacks and monotonic stack",
+   "prereqs": [
+    "F04",
+    "F07"
+   ],
+   "key_prereqs": [
+    "F04",
+    "F07"
+   ],
+   "encompasses": {
+    "F04": 0.5,
+    "F07": 0.4
+   },
+   "lessons": [
+    "lessons/0013-stacks-monotonic.html",
+    "lessons/0014-stacks-more-problems.html",
+    "lessons/0015-interleaving-stacks.html"
+   ],
+   "kps": [
+    "LIFO matching (parentheses) and why a stack is the right shape",
+    "Monotonic stack invariant: the stack stays sorted",
+    "Next greater element: what a pop means",
+    "O(n) total despite the inner while loop (amortized)"
+   ],
+   "picture": "Bars of different heights: a new tall bar hides every shorter bar to its left, which is exactly what gets popped."
+  },
+  {
+   "id": "P08",
+   "module": "M6",
+   "title": "Linked-list manipulation",
+   "prereqs": [
+    "F10",
+    "P03"
+   ],
+   "key_prereqs": [
+    "F10",
+    "P03"
+   ],
+   "encompasses": {
+    "P03": 0.4,
+    "F10": 0.3
+   },
+   "lessons": [
+    "lessons/0016-linked-lists.html",
+    "lessons/0017-linked-lists-more-problems.html",
+    "lessons/0018-interleaving-linked-lists.html"
+   ],
+   "kps": [
+    "Dummy head node and why it removes edge cases",
+    "In-place reversal: three pointers and the order of assignments",
+    "Floyd cycle detection and why fast catches slow",
+    "Finding the middle / k-th from the end"
+   ],
+   "picture": "Draw boxes and arrows; rewire one arrow at a time and check nothing gets orphaned."
+  },
+  {
+   "id": "P09",
+   "module": "M7",
+   "title": "Tree DFS and BFS",
+   "prereqs": [
+    "F05",
+    "F16"
+   ],
+   "key_prereqs": [
+    "F05",
+    "F08"
+   ],
+   "encompasses": {
+    "F05": 0.5,
+    "F16": 0.5,
+    "F08": 0.4
+   },
+   "lessons": [
+    "lessons/0019-trees.html",
+    "lessons/0020-trees-more-problems.html",
+    "lessons/0021-interleaving-trees.html"
+   ],
+   "kps": [
+    "Recursive DFS: define what the function returns for a subtree",
+    "Top-down (pass state down) vs bottom-up (return info up)",
+    "BFS by levels with a queue",
+    "BST problems using the ordering property; validate BST with bounds"
+   ],
+   "picture": "Each subtree is a smaller copy of the problem; the answer at a node is combined from its children's answers."
+  },
+  {
+   "id": "P10",
+   "module": "M8",
+   "title": "Heaps and top-K",
+   "prereqs": [
+    "F16",
+    "F02"
+   ],
+   "key_prereqs": [
+    "F16"
+   ],
+   "encompasses": {
+    "F16": 0.4,
+    "F02": 0.3
+   },
+   "lessons": [
+    "lessons/0022-heaps-top-k.html",
+    "lessons/0023-heaps-more-problems.html",
+    "lessons/0024-interleaving-heaps.html"
+   ],
+   "kps": [
+    "Heap property and sift up/down in O(log n)",
+    "Top-K with a size-k min-heap: why a min-heap for the largest K",
+    "Merge K sorted lists",
+    "Two heaps for a running median"
+   ],
+   "picture": "A complete tree where every parent beats its children; the size-k min-heap is a bouncer that evicts the weakest of the current top k."
+  },
+  {
+   "id": "P11",
+   "module": "M9",
+   "title": "Backtracking",
+   "prereqs": [
+    "F05",
+    "F14"
+   ],
+   "key_prereqs": [
+    "F14",
+    "F05"
+   ],
+   "encompasses": {
+    "F14": 0.5,
+    "F05": 0.5
+   },
+   "lessons": [
+    "lessons/0025-backtracking.html",
+    "lessons/0026-backtracking-more-problems.html",
+    "lessons/0027-interleaving-backtracking.html"
+   ],
+   "kps": [
+    "Choose / explore / un-choose",
+    "Subsets, permutations, combinations as decision trees",
+    "Pruning: cut a branch as soon as it cannot lead to a valid answer",
+    "Complexity from the size of the decision tree"
+   ],
+   "picture": "The F14 decision tree, walked depth-first, with dead branches cut off."
+  },
+  {
+   "id": "P12",
+   "module": "M10",
+   "title": "Graph BFS/DFS and connected components",
+   "prereqs": [
+    "F15",
+    "P09"
+   ],
+   "key_prereqs": [
+    "F15",
+    "P09"
+   ],
+   "encompasses": {
+    "P09": 0.5,
+    "F15": 0.5
+   },
+   "lessons": [
+    "lessons/0028-graphs.html",
+    "lessons/0029-graphs-more-problems.html"
+   ],
+   "kps": [
+    "Visited set: why trees do not need one and graphs do",
+    "BFS gives shortest paths in unweighted graphs: proof by layers",
+    "Grid flood fill / number of islands",
+    "Multi-source BFS"
+   ],
+   "picture": "BFS as ripples in a pond: layer d is exactly the set of nodes at distance d."
+  },
+  {
+   "id": "P13",
+   "module": "M10",
+   "title": "Topological sort",
+   "prereqs": [
+    "P12"
+   ],
+   "key_prereqs": [
+    "P12"
+   ],
+   "encompasses": {
+    "P12": 0.5
+   },
+   "lessons": [
+    "lessons/0028-graphs.html",
+    "lessons/0030-interleaving-graphs.html"
+   ],
+   "kps": [
+    "Kahn's algorithm: repeatedly remove in-degree-0 nodes",
+    "Cycle detection when nodes remain",
+    "DFS post-order reversed"
+   ],
+   "picture": "Peel off nodes with no incoming arrows, layer by layer."
+  },
+  {
+   "id": "P14",
+   "module": "M10",
+   "title": "Dijkstra",
+   "prereqs": [
+    "P12",
+    "P10"
+   ],
+   "key_prereqs": [
+    "P10",
+    "P12"
+   ],
+   "encompasses": {
+    "P10": 0.5,
+    "P12": 0.5
+   },
+   "lessons": [
+    "lessons/0028-graphs.html",
+    "lessons/0029-graphs-more-problems.html"
+   ],
+   "kps": [
+    "Greedy settle-the-closest and why non-negative weights make it safe",
+    "Lazy deletion with a PriorityQueue",
+    "Counterexample with a negative edge"
+   ],
+   "picture": "A growing ball of settled nodes; the frontier node closest to the source can never later be reached more cheaply."
+  },
+  {
+   "id": "P15",
+   "module": "M10",
+   "title": "Union-find",
+   "prereqs": [
+    "F16",
+    "F15"
+   ],
+   "key_prereqs": [
+    "F16"
+   ],
+   "encompasses": {
+    "F16": 0.3
+   },
+   "lessons": [
+    "lessons/0028-graphs.html",
+    "lessons/0029-graphs-more-problems.html"
+   ],
+   "kps": [
+    "Parent pointers forming a forest",
+    "Path compression and union by rank; near-constant amortized cost",
+    "When to use it instead of BFS (incremental connectivity)"
+   ],
+   "picture": "Trees of people pointing to their group leader; compression flattens the trees."
+  },
+  {
+   "id": "P16",
+   "module": "M11",
+   "title": "Dynamic programming",
+   "prereqs": [
+    "F06",
+    "P11"
+   ],
+   "key_prereqs": [
+    "F08",
+    "F06",
+    "P11"
+   ],
+   "encompasses": {
+    "F05": 0.5,
+    "F08": 0.5,
+    "F06": 0.4
+   },
+   "lessons": [
+    "lessons/0031-dynamic-programming.html",
+    "lessons/0032-dp-more-problems.html",
+    "lessons/0033-interleaving-dp.html"
+   ],
+   "kps": [
+    "Overlapping subproblems: spot repeated nodes in the recursion tree",
+    "State definition: what exactly does dp[i] mean, in words",
+    "Recurrence from the last decision; prove it by induction",
+    "Memoization vs tabulation and fill order",
+    "Complexity = number of states x work per state",
+    "DP vs greedy: when a local choice can be wrong (counterexample)"
+   ],
+   "picture": "The exponential recursion tree collapses into a small DAG once identical subtrees are merged."
+  },
+  {
+   "id": "P17",
+   "module": "M12",
+   "title": "Intervals and greedy",
+   "prereqs": [
+    "F12",
+    "F07"
+   ],
+   "key_prereqs": [
+    "F12",
+    "F07"
+   ],
+   "encompasses": {
+    "F12": 0.4,
+    "F07": 0.4
+   },
+   "lessons": [
+    "lessons/0034-intervals-greedy.html",
+    "lessons/0035-intervals-greedy-more-problems.html",
+    "lessons/0036-interleaving-final.html"
+   ],
+   "kps": [
+    "Sort by start to merge; sort by end to schedule the most intervals",
+    "Exchange argument: swap an optimal solution's first choice for the greedy one without losing",
+    "Sweep line / meeting rooms with a heap",
+    "Counterexample for the wrong sort key"
+   ],
+   "picture": "Intervals as segments on a timeline; the greedy choice leaves the most room to the right."
+  },
+  {
+   "id": "P18",
+   "module": "M13",
+   "title": "Prefix sums and difference arrays",
+   "prereqs": [
+    "F01",
+    "P01"
+   ],
+   "key_prereqs": [
+    "P01"
+   ],
+   "encompasses": {
+    "P01": 0.3,
+    "F01": 0.3
+   },
+   "kps": [
+    "Prefix sums turn a range sum into one subtraction",
+    "2D prefix sums: the inclusion-exclusion rectangle",
+    "Difference arrays: O(1) range updates, one pass to materialise",
+    "Choosing prefix sums vs a sliding window vs a hash map"
+   ],
+   "picture": "A fence-post picture: P[i] marks the boundary before element i, so a range is the gap between two posts."
+  },
+  {
+   "id": "P19",
+   "module": "M3",
+   "title": "Monotonic deque: sliding window extremes",
+   "prereqs": [
+    "P04",
+    "P07"
+   ],
+   "key_prereqs": [
+    "P07",
+    "P04"
+   ],
+   "encompasses": {
+    "P07": 0.5,
+    "P04": 0.5,
+    "F04": 0.4
+   },
+   "kps": [
+    "Why a heap is not enough: removing the element that just left the window",
+    "The deque invariant: indices in the window, values monotone",
+    "Why popping from the back loses nothing (dominated elements)",
+    "O(n) by the enters-once-leaves-once argument"
+   ],
+   "picture": "Bars in the window: a new taller bar hides every shorter bar behind it, so those can be thrown away for good."
+  },
+  {
+   "id": "P20",
+   "module": "M13",
+   "title": "Fenwick tree (binary indexed tree)",
+   "prereqs": [
+    "P18",
+    "F02"
+   ],
+   "key_prereqs": [
+    "P18",
+    "F02"
+   ],
+   "encompasses": {
+    "P18": 0.5,
+    "F02": 0.4
+   },
+   "kps": [
+    "The problem prefix sums cannot solve: updates between queries",
+    "What index i covers: the lowest set bit, i & -i",
+    "Update walks up, query walks down, both in log n",
+    "Counting inversions with a BIT over values"
+   ],
+   "picture": "Each node covers a block whose length is its lowest set bit; a prefix is stitched from at most log n such blocks."
+  },
+  {
+   "id": "P21",
+   "module": "M13",
+   "title": "Segment tree, with lazy propagation",
+   "prereqs": [
+    "P20",
+    "F16"
+   ],
+   "key_prereqs": [
+    "F16",
+    "P20"
+   ],
+   "encompasses": {
+    "P20": 0.5,
+    "F16": 0.4,
+    "F05": 0.3
+   },
+   "kps": [
+    "A tree over ranges: each node stores the answer for its interval",
+    "Query decomposition: a range splits into O(log n) canonical nodes",
+    "Point update: fix one root-to-leaf path",
+    "Lazy propagation: postpone range updates until someone looks"
+   ],
+   "picture": "A range query is covered by O(log n) whole nodes: at most two per level, because a third would have merged into the parent."
+  },
+  {
+   "id": "P22",
+   "module": "M7",
+   "title": "Binary lifting and lowest common ancestor",
+   "prereqs": [
+    "P09",
+    "F02"
+   ],
+   "key_prereqs": [
+    "F02",
+    "P09"
+   ],
+   "encompasses": {
+    "P09": 0.4,
+    "F02": 0.5
+   },
+   "kps": [
+    "Jump pointers: up[k][v] = the 2^k-th ancestor of v",
+    "Any k-th ancestor from the binary expansion of k",
+    "LCA: lift to equal depth, then jump while the ancestors differ",
+    "Distance and path queries from LCA"
+   ],
+   "picture": "Climbing a ladder in powers of two: any height is a sum of distinct powers, so log n jumps always suffice."
+  },
+  {
+   "id": "P23",
+   "module": "M7",
+   "title": "Tree DP and rerooting",
+   "prereqs": [
+    "P09",
+    "P16"
+   ],
+   "key_prereqs": [
+    "P16",
+    "P09"
+   ],
+   "encompasses": {
+    "P09": 0.5,
+    "P16": 0.5
+   },
+   "kps": [
+    "DP over subtrees: the state is a node plus what its parent needs",
+    "Combining children: diameter, maximum path, subtree counts",
+    "Rerooting: answers for every root without redoing the work n times",
+    "Complexity: each edge used a constant number of times"
+   ],
+   "picture": "Two sweeps: one up the tree collecting subtree answers, one down passing the 'everything else' answer to each child."
+  },
+  {
+   "id": "P24",
+   "module": "M11",
+   "title": "Bitmask DP over subsets",
+   "prereqs": [
+    "P16",
+    "F14"
+   ],
+   "key_prereqs": [
+    "F14",
+    "P16"
+   ],
+   "encompasses": {
+    "P16": 0.5,
+    "F14": 0.5
+   },
+   "kps": [
+    "A subset as an integer: state = which items are done",
+    "Transitions with bit operations, and iterating set bits",
+    "Assignment and TSP-style problems: O(2^n · n) or O(2^n · n^2)",
+    "Why n ≤ 20 is the signal, and when order collapses to set"
+   ],
+   "picture": "The 2^n subsets form a lattice: every transition adds one bit, so the DAG is layered by popcount."
+  },
+  {
+   "id": "P25",
+   "module": "M11",
+   "title": "Interval DP",
+   "prereqs": [
+    "P16"
+   ],
+   "key_prereqs": [
+    "P16"
+   ],
+   "encompasses": {
+    "P16": 0.5
+   },
+   "kps": [
+    "State over a range: dp[i][j] for the subarray i..j",
+    "The last-operation view: choose the final split or the last removed item",
+    "Fill order by increasing interval length",
+    "Cost: O(n^2) states times O(n) splits"
+   ],
+   "picture": "Fill the table by diagonals: every cell depends only on strictly shorter intervals lying below it."
+  },
+  {
+   "id": "P26",
+   "module": "M10",
+   "title": "Minimum spanning tree: Kruskal and Prim",
+   "prereqs": [
+    "P15",
+    "P10"
+   ],
+   "key_prereqs": [
+    "P15"
+   ],
+   "encompasses": {
+    "P15": 0.5,
+    "P10": 0.4,
+    "P17": 0.3
+   },
+   "kps": [
+    "What an MST is, and the cut property that justifies greed",
+    "Kruskal: sort edges, union if they join two components",
+    "Prim: grow one tree with a heap of crossing edges",
+    "Choosing between them, and what MST does not give you"
+   ],
+   "picture": "The cut property: for any split of the vertices, the cheapest crossing edge is safe, because swapping it into any spanning tree cannot cost more."
+  },
+  {
+   "id": "P27",
+   "module": "M10",
+   "title": "Bellman-Ford and Floyd-Warshall",
+   "prereqs": [
+    "P14"
+   ],
+   "key_prereqs": [
+    "P14"
+   ],
+   "encompasses": {
+    "P14": 0.5,
+    "P16": 0.3
+   },
+   "kps": [
+    "Bellman-Ford: relax every edge V-1 times, and why that suffices",
+    "Detecting negative cycles with one more pass",
+    "Floyd-Warshall: allow intermediate vertices one at a time",
+    "Choosing among BFS, Dijkstra, Bellman-Ford and Floyd-Warshall"
+   ],
+   "picture": "Bellman-Ford by path length: after k rounds every shortest path using at most k edges is correct, and a simple path uses at most V-1."
+  },
+  {
+   "id": "P28",
+   "module": "M15",
+   "title": "Modular arithmetic and fast exponentiation",
+   "prereqs": [
+    "F01",
+    "F02"
+   ],
+   "key_prereqs": [
+    "F02"
+   ],
+   "encompasses": {
+    "F02": 0.3
+   },
+   "kps": [
+    "Why answers are asked mod 1e9+7, and where overflow bites in Java",
+    "Fast power by repeated squaring: log n multiplications",
+    "Modular inverse via Fermat, and division under a modulus",
+    "nCr mod p with factorials and inverse factorials"
+   ],
+   "picture": "Repeated squaring is the binary expansion of the exponent: square down the ladder, multiply in the set bits."
+  },
+  {
+   "id": "P29",
+   "module": "M15",
+   "title": "Sieve, factorisation and gcd",
+   "prereqs": [
+    "F01",
+    "F03"
+   ],
+   "key_prereqs": [
+    "F01"
+   ],
+   "encompasses": {
+    "F01": 0.3,
+    "F03": 0.3
+   },
+   "kps": [
+    "Trial division to sqrt(n), and why that bound is enough",
+    "Sieve of Eratosthenes and its harmonic-sum cost",
+    "Smallest prime factor table: factorise in log n",
+    "gcd by Euclid, lcm without overflow"
+   ],
+   "picture": "Divisors come in pairs multiplying to n, so one of each pair is at most sqrt(n): checking past it is redundant."
+  },
+  {
+   "id": "P30",
+   "module": "M14",
+   "title": "String hashing",
+   "prereqs": [
+    "F11",
+    "P18",
+    "P28"
+   ],
+   "key_prereqs": [
+    "F11",
+    "P28"
+   ],
+   "encompasses": {
+    "F11": 0.4,
+    "P28": 0.4,
+    "P18": 0.3
+   },
+   "kps": [
+    "Polynomial hashing as a prefix sum in disguise",
+    "Substring hash in O(1) from prefix hashes",
+    "Collisions: birthday bound, choosing the modulus, double hashing",
+    "What hashing buys over KMP, and what it risks"
+   ],
+   "picture": "The hash of a prefix is a number in base B; a substring is a difference of two prefixes, scaled by a power of B."
+  },
+  {
+   "id": "P31",
+   "module": "M14",
+   "title": "KMP and the Z-algorithm",
+   "prereqs": [
+    "F07"
+   ],
+   "key_prereqs": [
+    "F07"
+   ],
+   "encompasses": {
+    "F07": 0.5
+   },
+   "kps": [
+    "The failure function: longest proper prefix that is also a suffix",
+    "Why the search never moves backwards in the text",
+    "Building the failure function with the same idea, in O(n)",
+    "The Z-array and what it answers directly"
+   ],
+   "picture": "On a mismatch you slide the pattern to the next position where the part already matched still lines up, so the text pointer never retreats."
+  },
+  {
+   "id": "P32",
+   "module": "M14",
+   "title": "Tries and bit tries",
+   "prereqs": [
+    "F16",
+    "F10"
+   ],
+   "key_prereqs": [
+    "F16"
+   ],
+   "encompasses": {
+    "F16": 0.4,
+    "F10": 0.3
+   },
+   "kps": [
+    "A trie node is a branch on the next character, not a stored key",
+    "Insert, search and prefix search costs",
+    "Bit trie for maximum XOR pair",
+    "Memory: when a trie beats a hash set and when it loses"
+   ],
+   "picture": "Shared prefixes share a path, so the tree branches only where the words actually differ."
+  },
+  {
+   "id": "P33",
+   "module": "M15",
+   "title": "Matrix exponentiation for linear recurrences",
+   "prereqs": [
+    "P28",
+    "F06"
+   ],
+   "key_prereqs": [
+    "P28",
+    "F06"
+   ],
+   "encompasses": {
+    "P28": 0.5,
+    "F06": 0.4,
+    "F02": 0.3
+   },
+   "kps": [
+    "Writing a linear recurrence as a matrix times a state vector",
+    "Fast power on matrices: log n multiplications",
+    "Counting paths of length k in a graph",
+    "When it pays: huge n with a small state"
+   ],
+   "picture": "One matrix multiply advances the recurrence one step; squaring the matrix doubles the number of steps it advances."
+  },
+  {
+   "id": "P34",
+   "module": "M9",
+   "title": "Meet in the middle",
+   "prereqs": [
+    "F14",
+    "P11",
+    "F12"
+   ],
+   "key_prereqs": [
+    "F14",
+    "P11"
+   ],
+   "encompasses": {
+    "F14": 0.5,
+    "P11": 0.4,
+    "F12": 0.3
+   },
+   "kps": [
+    "Split the items in half and enumerate each half separately",
+    "Combine with sorting plus binary search, or a hash map",
+    "2^(n/2) instead of 2^n: what n it unlocks",
+    "When halves cannot be combined cheaply"
+   ],
+   "picture": "Two lists of 2^(n/2) sums instead of one list of 2^n: the square root of the search space, paid for by a combine step."
+  }
+ ]
 }

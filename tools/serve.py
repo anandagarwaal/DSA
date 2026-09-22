@@ -67,8 +67,17 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(400, {"error": str(e)})
 
     def log_message(self, fmt, *args):
-        if "/api/" in (args[0] if args else ""):
-            sys.stderr.write("%s\n" % (fmt % args))
+        """Log API calls and errors; stay quiet about ordinary static-file hits.
+
+        Note: args[0] is not always a string (send_error passes an HTTPStatus),
+        so format first and match on the message.
+        """
+        try:
+            msg = fmt % args
+        except (TypeError, ValueError):
+            msg = " ".join(str(a) for a in (fmt,) + args)
+        if "/api/" in msg or "code 4" in msg or "code 5" in msg:
+            sys.stderr.write("%s - %s\n" % (self.address_string(), msg))
 
 
 def main():
