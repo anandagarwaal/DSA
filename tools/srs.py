@@ -152,13 +152,25 @@ def due_items(topics, progress, today):
 
 
 def frontier_items(graph, progress):
-    """(ready to learn, ready to diagnose, count of unverified topics above those)."""
+    """(suggested next topics, worth placing out of, count of other unverified topics).
+
+    Advice about order, not a gate. Since 2026-09-22 no lesson is locked, so every
+    topic that is not yet mastered can be opened and read today; the ones whose
+    prerequisites are all mastered simply come first in the list. The old version
+    returned only topics with every prerequisite mastered, which on a fresh course
+    (everything "unverified") was empty -- the dashboard then had nothing to offer
+    but placement quizzes, and the course looked like a test with no teaching.
+    """
     st = {t["id"]: progress["topics"][t["id"]].get("status") for t in graph["topics"]}
-    ready = [t["id"] for t in graph["topics"] if st[t["id"]] in ("not_started", "learning")
-             and all(st[p] == "mastered" for p in t.get("prereqs", []))]
+
+    def unlocked(t):
+        return all(st[p] == "mastered" for p in t.get("prereqs", []))
+
+    todo = [t for t in graph["topics"] if st[t["id"]] != "mastered"]
+    ready = [t["id"] for t in todo if unlocked(t)] + [t["id"] for t in todo if not unlocked(t)]
+    # Placement is only worth offering where the course already believes he knows it.
+    probe = [t["id"] for t in graph["topics"] if st[t["id"]] == "unverified" and unlocked(t)]
     unverified = [t["id"] for t in graph["topics"] if st[t["id"]] == "unverified"]
-    probe = [t["id"] for t in graph["topics"] if st[t["id"]] == "unverified"
-             and all(st[p] == "mastered" for p in t.get("prereqs", []))]
     return ready, probe, len(unverified) - len(probe)
 
 
@@ -185,14 +197,17 @@ def _descendants(topics, tid, seen=None):
 
 def cmd_frontier(graph, topics, progress, today):
     ready, probe, above = frontier_items(graph, progress)
-    print("Knowledge frontier (all prerequisites mastered):")
-    for tid in ready:
+    print("Learn next (prerequisites mastered first; nothing is locked):")
+    for tid in ready[:8]:
         print(f"  {tid:4} {topics[tid]['title']}  [{progress['topics'][tid]['status']}]")
-    if probe or above:
-        print("\nDiagnose next (unverified, every prerequisite mastered):")
+    if len(ready) > 8:
+        print(f"  ...{len(ready) - 8} more topics not yet mastered.")
+    if probe:
+        print("\nWorth a placement quiz first (marked known, never verified):")
         for tid in probe:
             print(f"  {tid:4} {topics[tid]['title']}")
-        print(f"  ...{above} more unverified topics sit above these.")
+        if above:
+            print(f"  ...{above} more unverified topics sit above these.")
 
 
 def cmd_status(graph, topics, progress, today):

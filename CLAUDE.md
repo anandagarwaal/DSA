@@ -18,11 +18,19 @@ Anand asked for lessons he can work through **without chat**. He runs:
 python3 tools/serve.py     # then open http://localhost:8000
 ```
 
-The pages do the teaching: prerequisite warm-up, one small step at a time (3 correct to
-unlock the next, a second miss sends him back to the prerequisites), a closed-book
-end-of-topic quiz, cumulative section quizzes, and spaced review that opens each day.
+The pages do the teaching: one small step at a time, each a short explanation with a
+worked example and then questions on it (3 correct marks the step passed), a closed-book
+end-of-topic quiz, cumulative section quizzes, a list of suggested problems to go and
+solve, and spaced review that opens each day.
 **Don't re-teach a topic in chat that the page already covers, and don't quiz him from
 scratch unless he asks.** Point him at the page.
+
+**Nothing on the pages is locked (changed 2026-09-22).** Every step is expanded on
+arrival, the end-of-topic quiz is always available, placement and the prerequisite
+warm-up are folded-away offers, and the "frontier" is a suggested order rather than a
+gate. He said the course *"looks like I am giving the quiz without learning the
+material"*, and he was right: the dashboard's first action used to be a placement quiz.
+Teaching comes first now. Keep it that way: the scoring stayed strict, the gating went.
 
 | File | What it is |
 |---|---|
@@ -35,10 +43,16 @@ scratch unless he asks.** Point him at the page.
 | `progress.json` | Per-topic status and schedule. Only change it through `tools/srs.py` or the server |
 | `learning-records/` | One short file per notable finding about how he learns |
 | `lessons/legacy/` | The old 0001–0036 pattern lessons, kept for extra practice |
+| `content/problems.js` | Suggested problems per topic (LeetCode + CSES, no solutions). Generated; edit `tools/build_problems.py` |
+| `COVERAGE.md` | How the course maps onto CSES / CP-31 / USACO, and what is excluded on purpose |
 
 Tools: `tools/build.py` (regenerate `content/graph.js` + lesson shells after editing the
-graph), `node tools/check_content.js [ID]` (schema, tags, option-length tells, drafting
-leftovers), `node tools/check_java.js [ID]` (compiles every practice solution).
+graph), `tools/build_problems.py` (regenerate the suggested-problem lists; it validates
+every LeetCode slug and CSES task id against the live indexes and rejects premium
+problems), `node tools/check_content.js [ID]` (schema, tags, option-length tells, drafting
+leftovers), `node tools/check_java.js [ID]` (compiles every practice solution),
+`python3 tools/check_server.py` (serves a throwaway copy and checks pages, the API, 404s
+and bad input; run it after touching `tools/serve.py`).
 
 ## What he needs chat for
 
@@ -80,8 +94,18 @@ O(1)" with no cost accounting).
 
 - **Mastery learning**: teach a topic only when its prerequisites are mastered
   (`srs.py frontier` enforces this). Foundations (F*) carry the *why* behind the patterns (P*).
+- **Scope**: interview-first. P18–P34 add the CP-adjacent topics that do come up at
+  Google/Meta (prefix sums, monotonic deque, BIT/segment tree, LCA, tree DP, bitmask and
+  interval DP, MST, Bellman-Ford/Floyd, modular arithmetic, sieve, hashing, KMP, tries,
+  matrix exponentiation, meet in the middle). Don't add flows, 2-SAT, suffix automata,
+  geometry or Grundy numbers without Anand asking: that decision is recorded in `COVERAGE.md`.
 - **Small steps with a worked example first**, then immediate retrieval. Each step needs
   ≥ 4 questions (3 to pass, one spare).
+- **Every topic ends with problems to go and solve**, listed in `tools/build_problems.py`:
+  roughly easiest first, LeetCode and CSES mixed, one line each on what it drills, and no
+  solution attached. Six or so for a pattern topic, three for a foundation. The worked
+  problems with solutions stay in the content file's `practice`. Keep the two separate:
+  reading a solution and producing one are different skills.
 - **Question types, in priority order**: picture/geometric, what-breaks-if, counterexample,
   transfer to an unseen problem, explain-cold. Then trace/compute, spot-the-bug, discriminate.
   Every topic's quiz needs at least one free-response and one transfer question.

@@ -60,9 +60,12 @@
   }
 
   function api(path, payload) {
-    if (location.protocol === 'file:') return Promise.resolve(null);
+    if (location.protocol === 'file:' || typeof fetch !== 'function') return Promise.resolve(null);
     var opt = payload ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) } : {};
-    return fetch(path.replace(/^\//, '/'), opt).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+    // Any failure degrades to offline mode; a blank page would be worse than an unsaved result.
+    try {
+      return fetch(path.replace(/^\//, '/'), opt).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+    } catch (e) { return Promise.resolve(null); }
   }
   function record(topic, kind, result, note) {
     return api('/api/record', { topic: topic, kind: kind, result: result, note: note }).then(function (r) {
@@ -238,7 +241,12 @@
     next();
   }
 
-  /* ---------- lesson page ---------- */
+  /* ---------- lesson page ----------
+   * Teaching first, and nothing is locked. Every step's explanation is open from the
+   * start; the questions after it tick the step off but never bar the way. Placement
+   * and the prerequisite warm-up are offers, folded away, not a toll gate. (Changed
+   * 2026-09-22: the old page opened with two quizzes and locked steps 2..n, which read
+   * as "quiz first, teach later".) */
   function lessonPage() {
     var id = body.dataset.topic, t = C.topics[id], g = G.topics[id];
     var app = document.getElementById('app');
@@ -265,151 +273,201 @@
       });
       var unmet = g.prereqs.filter(function (p) { return STATE && status(p) !== 'mastered'; });
       if (unmet.length) pre.appendChild(el('p', { 'class': 'warn', html: 'Not yet mastered: <strong>' + unmet.join(', ') +
-        '</strong>. Mastery learning says finish those first. This lesson will lean on them.' }));
+        '</strong>. You can still take this lesson. But if a step feels like it rests on nothing, that is where to look.' }));
       app.appendChild(pre);
     }
 
-    // Placement: only for topics not yet in the review cycle.
+    /* Two offers, both folded shut, both skippable. */
+    var offers = el('div', { 'class': 'offers' });
+    app.appendChild(offers);
+
+    // Placement: only worth showing for topics not yet in the review cycle.
     var s = status(id);
     if (!st.quiz && s !== 'mastered' && s !== 'remediate' && t.quiz && t.quiz.length) {
-      var place = el('details', { 'class': 'place' }, [el('summary', { text: 'Think you already know this? Take the placement quiz' })]);
+      var place = el('details', { 'class': 'place' }, [el('summary', { text: 'Already know this? Skip the lesson by passing the quiz now' })]);
       var ph = el('div');
-      place.appendChild(el('p', { html: 'Every question in the end-of-topic quiz, closed book. At most one miss to place out. A proof with a gap counts as a miss. Fail and it simply means: take the lesson.' }));
+      place.appendChild(el('p', { html: 'Every question in the end-of-topic quiz, closed book. At most one miss to place out. A proof with a gap counts as a miss. Fail and nothing is lost: read the lesson below, which is where most topics should start.' }));
       place.appendChild(el('button', { 'class': 'btn', text: 'Start placement', onclick: function (e) {
         e.target.remove();
         runPool(ph, pool(t, 'quiz'), { mode: 'all', maxMiss: 1, onDone: function (pass, res) {
           var note = 'placement quiz in lesson page: ' + res.filter(function (r) { return r.ok; }).length + '/' + res.length;
           record(id, 'diagnose', pass ? 'pass' : 'fail', note);
-          if (pass) { st.kp = t.kps.length; st.quiz = 'pass'; save(); }
+          if (pass) { st.kp = t.kps.length; st.quiz = 'pass'; save(); renderSteps(); renderQuiz(); }
           ph.appendChild(el('div', { 'class': pass ? 'good-box' : 'bad-box', html: pass
-            ? 'Placed out. ' + id + ' is now in your spaced-review cycle. The steps below stay open for reference.'
-            : 'Not placed. Work through the steps below.' }));
-          if (pass) renderSteps();
+            ? 'Placed out. ' + id + ' is now in your spaced-review cycle. The lesson below stays open for reference.'
+            : 'Not placed. Read the lesson below; that is the normal path, not a penalty.' }));
         } });
       } }));
       place.appendChild(ph);
-      app.appendChild(place);
+      offers.appendChild(place);
     }
 
-    // Warm-up on key prerequisites: never assume them.
-    var warm = el('div');
-    app.appendChild(warm);
-    if (g.key_prereqs.length && st.kp === 0) {
-      loadTopics(g.key_prereqs).then(function (ts) {
-        var items = [];
-        ts.forEach(function (pt) { if (pt) items = items.concat(pickFresh(pool(pt, 'quiz'), 1)); });
-        if (!items.length) return;
-        warm.appendChild(el('h2', { text: 'Warm-up: prerequisite check' }));
-        warm.appendChild(el('p', { html: 'One question on each key prerequisite (' + g.key_prereqs.join(', ') + '). This lesson uses them directly.' }));
-        var wh = el('div', { 'class': 'quiz' });
-        warm.appendChild(wh);
-        wh.appendChild(el('button', { 'class': 'btn', text: 'Start warm-up', onclick: function (e) {
-          e.target.remove();
+    // Warm-up on key prerequisites: offered, never forced.
+    if (g.key_prereqs.length) {
+      var warm = el('details', { 'class': 'place' }, [el('summary', { text: 'Optional warm-up: one question on each prerequisite this lesson uses' })]);
+      var wh = el('div', { 'class': 'quiz' });
+      warm.appendChild(el('p', { html: 'One question each on ' + g.key_prereqs.join(', ') + '. Miss one and you have found the thing to read first. Skipping this is fine; the lesson does not depend on it.' }));
+      warm.appendChild(wh);
+      var wbtn = el('button', { 'class': 'btn', text: 'Start warm-up', onclick: function (e) {
+        e.target.remove();
+        loadTopics(g.key_prereqs).then(function (ts) {
+          var items = [];
+          ts.forEach(function (pt) { if (pt) items = items.concat(pickFresh(pool(pt, 'quiz'), 1)); });
+          if (!items.length) { wh.appendChild(el('p', { 'class': 'note', text: 'No questions available for those topics.' })); return; }
           runPool(wh, items, { mode: 'all', maxMiss: 99, scroll: false, onDone: function (pass, res) {
             var missed = res.filter(function (r) { return !r.ok; }).map(function (r) { return r.item.topic; });
             wh.appendChild(el('div', { 'class': missed.length ? 'bad-box' : 'good-box', html: missed.length
-              ? 'You missed a prerequisite: <strong>' + missed.join(', ') + '</strong>. Revisit it first (links above). This lesson builds on it.'
-              : 'Prerequisites solid. On to step 1.' }));
+              ? 'Shaky prerequisite: <strong>' + missed.join(', ') + '</strong> (links above). Worth a reread, either before this lesson or right after it.'
+              : 'Prerequisites solid. Straight into step 1.' }));
           } });
-        } }));
-      });
+        });
+      } });
+      wh.appendChild(wbtn);
+      offers.appendChild(warm);
     }
 
     var stepsHost = el('div');
     app.appendChild(stepsHost);
     var quizHost = el('div');
     app.appendChild(quizHost);
+    var extrasHost = el('div');
+    app.appendChild(extrasHost);
 
     function renderSteps() {
       stepsHost.innerHTML = '';
+      stepsHost.appendChild(el('h2', { 'class': 'lessonhead', text: 'The lesson' }));
+      stepsHost.appendChild(el('p', { 'class': 'note', text: 'Read each step, then answer its questions while it is fresh. Every step is open: the questions measure you, they do not gate you.' }));
       t.kps.forEach(function (kp, k) {
-        var done = k < st.kp, active = k === st.kp;
-        var sec = el('section', { 'class': 'kp ' + (done ? 'done' : active ? 'active' : 'locked') });
-        sec.appendChild(el('h2', { html: '<span class="stepno">Step ' + (k + 1) + ' of ' + t.kps.length + '</span> ' + kp.title }));
-        if (!done && !active) { sec.appendChild(el('p', { 'class': 'note', text: 'Locked until the previous step is mastered.' })); stepsHost.appendChild(sec); return; }
-        var teach = el('div', { 'class': 'teach', html: kp.teach });
-        if (done) {
-          var det = el('details', {}, [el('summary', { text: 'Mastered: reopen the explanation' }), teach]);
-          sec.appendChild(det);
-        } else {
-          sec.appendChild(teach);
-          var qh = el('div', { 'class': 'quiz' });
-          sec.appendChild(qh);
-          var need = Math.min(3, kp.qs.length), items = kp.qs.map(function (q, i) { return { q: q, key: id + ':' + k + ':' + i, topic: id }; });
-          if (store.get('retry:' + id + ':' + k)) items = shuffle(items);
-          qh.appendChild(el('p', { html: '<strong>Your turn.</strong> ' + need + ' correct to move on; a second miss sends you back to the prerequisites.' }));
-          qh.appendChild(el('button', { 'class': 'btn', text: 'Start questions', onclick: function (e) {
-            e.target.remove();
-            runPool(qh, items, { mode: 'mastery', need: need, maxMiss: 1, onDone: function (pass) {
-              if (pass) { st.kp = k + 1; save(); store.set('retry:' + id + ':' + k, false); renderSteps(); renderQuiz(); return; }
-              store.set('retry:' + id + ':' + k, true);
-              var links = el('p');
-              g.key_prereqs.forEach(function (p, i) { if (i) links.appendChild(document.createTextNode(' · ')); links.appendChild(topicLink(p)); });
-              qh.appendChild(el('div', { 'class': 'bad-box' }, [
-                el('p', { html: '<strong>Two misses on this step: stop here.</strong> Pushing on now builds on a crack. ' +
-                  'Reread the explanation above slowly, redo the worked example on paper without looking, and review the key prerequisites:' }),
-                g.key_prereqs.length ? links : el('p', { text: '(this step has no earlier topic behind it; the gap is inside the explanation above)' }),
-                el('p', { text: 'Best of all: come back tomorrow. A rest and a fresh look usually clear it.' }),
-                el('button', { 'class': 'btn', text: 'Retry this step (new question order)', onclick: renderSteps })
-              ]));
-            } });
-          } }));
-        }
+        var done = k < st.kp;
+        var sec = el('section', { 'class': 'kp ' + (done ? 'done' : 'active') });
+        var head = el('h2', { html: '<span class="stepno">Step ' + (k + 1) + ' of ' + t.kps.length + '</span> ' + kp.title });
+        if (done) head.appendChild(el('span', { 'class': 'badge st-mastered', text: 'passed' }));
+        sec.appendChild(head);
+        // Kept inside <details open> so the end-of-topic quiz can shut them for closed book.
+        sec.appendChild(el('details', { open: true, 'class': 'teachwrap' }, [
+          el('summary', { text: 'Explanation and worked example' }),
+          el('div', { 'class': 'teach', html: kp.teach })
+        ]));
+        var qh = el('div', { 'class': 'quiz' });
+        sec.appendChild(qh);
+        var need = Math.min(3, kp.qs.length), items = kp.qs.map(function (q, i) { return { q: q, key: id + ':' + k + ':' + i, topic: id }; });
+        if (store.get('retry:' + id + ':' + k)) items = shuffle(items);
+        qh.appendChild(el('p', { html: '<strong>Your turn.</strong> ' + need + ' correct marks the step passed. A miss locks nothing; it tells you which sentence above to reread.' }));
+        qh.appendChild(el('button', { 'class': 'btn', text: done ? 'Answer these again' : 'Start questions', onclick: function (e) {
+          e.target.remove();
+          runPool(qh, items, { mode: 'mastery', need: need, maxMiss: 99, onDone: function (pass, res) {
+            var got = res.filter(function (r) { return r.ok; }).length;
+            if (pass) {
+              store.set('retry:' + id + ':' + k, false);
+              if (st.kp <= k) { st.kp = k + 1; save(); }
+              // Mark it passed in place: redrawing the list here would wipe the message he is reading.
+              sec.classList.add('done');
+              if (!head.querySelector('.badge')) head.appendChild(el('span', { 'class': 'badge st-mastered', text: 'passed' }));
+              qh.appendChild(el('div', { 'class': 'good-box', html: k + 2 <= t.kps.length
+                ? 'Step passed, ' + got + ' of ' + res.length + '. On to step ' + (k + 2) + '.'
+                : 'Step passed, ' + got + ' of ' + res.length + '. That was the last step: the end-of-topic quiz is below.' }));
+              renderQuiz();
+              return;
+            }
+            store.set('retry:' + id + ':' + k, true);
+            var links = el('p');
+            g.key_prereqs.forEach(function (p, i) { if (i) links.appendChild(document.createTextNode(' · ')); links.appendChild(topicLink(p)); });
+            qh.appendChild(el('div', { 'class': 'bad-box' }, [
+              el('p', { html: '<strong>' + got + ' of ' + res.length + ': not solid yet.</strong> Nothing is blocked, and reading on is allowed. ' +
+                'But this step is cheaper to fix now: reread the explanation slowly, redo the worked example on paper without looking, then answer again. ' +
+                'Coming back tomorrow works even better.' }),
+              g.key_prereqs.length ? el('p', { 'class': 'note' }, [el('span', { text: 'If the gap is older than this lesson: ' }), links]) : el('p', { 'class': 'note', text: 'No earlier topic sits behind this step; the gap is inside the explanation above.' }),
+              el('button', { 'class': 'btn', text: 'Answer again (new order)', onclick: function () { renderSteps(); } })
+            ]));
+          } });
+        } }));
         stepsHost.appendChild(sec);
       });
     }
-
     function renderQuiz() {
       quizHost.innerHTML = '';
-      var sec = el('section', { 'class': 'kp ' + (st.kp >= t.kps.length ? 'active' : 'locked') });
+      var sec = el('section', { 'class': 'kp active' });
       sec.appendChild(el('h2', { text: 'End-of-topic quiz' }));
       quizHost.appendChild(sec);
-      if (st.kp < t.kps.length) { sec.appendChild(el('p', { 'class': 'note', text: 'Unlocks after every step is mastered.' })); return; }
       if (st.quiz === 'pass') {
         sec.appendChild(el('div', { 'class': 'good-box', html: 'Passed. ' + id + ' is in your spaced-review cycle. <a href="' + ROOT + 'review.html">Reviews</a> will bring it back just before you would forget it.' }));
-      } else {
-        sec.appendChild(el('p', { html: '<strong>Closed book.</strong> Every step, mixed and unlabelled, including shapes you have not seen. The explanations above are collapsed. Don\'t open them. At most one miss to pass.' }));
-        var qh = el('div', { 'class': 'quiz' });
-        sec.appendChild(qh);
-        qh.appendChild(el('button', { 'class': 'btn', text: 'Start the quiz', onclick: function (e) {
-          e.target.remove();
-          stepsHost.querySelectorAll('details').forEach(function (d) { d.open = false; });
-          runPool(qh, shuffle(pool(t, 'quiz')), { mode: 'all', maxMiss: 1, onDone: function (pass, res) {
-            var wrong = res.filter(function (r) { return !r.ok; });
-            record(id, 'learn', pass ? 'pass' : 'fail', 'end-of-topic quiz ' + (res.length - wrong.length) + '/' + res.length);
-            st.quiz = pass ? 'pass' : null; save();
-            qh.appendChild(el('div', { 'class': pass ? 'good-box' : 'bad-box', html: pass
-              ? 'Topic mastered. First review is scheduled; it will come back in ' + (STATE ? 'a day or so' : 'your next review') + '.'
-              : 'Two or more misses. Reopen the steps those questions came from, then retake the quiz tomorrow; the question order will change.' }));
-            if (!pass) qh.appendChild(el('button', { 'class': 'btn', text: 'Retake now anyway', onclick: renderQuiz }));
-          } });
-        } }));
+        sec.appendChild(el('button', { 'class': 'btn ghost', text: 'Take it again anyway', onclick: function () { st.quiz = null; save(); renderQuiz(); } }));
+        return;
       }
-      if (t.practice && t.practice.length) renderPractice(sec);
+      var left = t.kps.length - st.kp;
+      if (left > 0) sec.appendChild(el('p', { 'class': 'note', text: left + ' step' + (left > 1 ? 's' : '') + ' above have not been passed yet. You can still take the quiz; it just tends to go better after them.' }));
+      sec.appendChild(el('p', { html: '<strong>Closed book.</strong> Every step, mixed and unlabelled, including shapes you have not seen. Starting it folds the explanations shut. Don\'t open them. At most one miss to pass.' }));
+      var qh = el('div', { 'class': 'quiz' });
+      sec.appendChild(qh);
+      qh.appendChild(el('button', { 'class': 'btn', text: 'Start the quiz', onclick: function (e) {
+        e.target.remove();
+        stepsHost.querySelectorAll('details').forEach(function (d) { d.open = false; });
+        runPool(qh, shuffle(pool(t, 'quiz')), { mode: 'all', maxMiss: 1, onDone: function (pass, res) {
+          var wrong = res.filter(function (r) { return !r.ok; });
+          record(id, 'learn', pass ? 'pass' : 'fail', 'end-of-topic quiz ' + (res.length - wrong.length) + '/' + res.length);
+          st.quiz = pass ? 'pass' : null; save();
+          qh.appendChild(el('div', { 'class': pass ? 'good-box' : 'bad-box', html: pass
+            ? 'Topic mastered. First review is scheduled; it will come back in ' + (STATE ? 'a day or so' : 'your next review') + '.'
+            : 'Two or more misses. Reopen the steps those questions came from, then retake the quiz tomorrow; the question order will change.' }));
+          if (!pass) qh.appendChild(el('button', { 'class': 'btn', text: 'Retake now anyway', onclick: renderQuiz }));
+        } });
+      } }));
+    }
+
+    function renderExtras() {
+      if (t.practice && t.practice.length) renderPractice(extrasHost);
+      renderProblems(extrasHost, id);
       var unlocks = Object.keys(G.topics).filter(function (x) { return G.topics[x].prereqs.indexOf(id) >= 0; });
       if (unlocks.length) {
-        var p = el('p', { 'class': 'note' }, ['Unlocks next: ']);
+        var p = el('p', { 'class': 'note' }, ['Leads to: ']);
         unlocks.forEach(function (u, i) { if (i) p.appendChild(document.createTextNode(' · ')); p.appendChild(topicLink(u)); });
-        sec.appendChild(p);
+        extrasHost.appendChild(p);
       }
     }
 
-    function renderPractice(sec) {
-      sec.appendChild(el('h2', { text: 'Code it: practice problems' }));
-      sec.appendChild(el('p', { html: 'Do these in an editor or on LeetCode, in Java. <strong>Before coding</strong>, say out loud: the pattern, the invariant, why it is correct, and the complexity. Then code, then dry-run one example.' }));
+    function renderPractice(host) {
+      host.appendChild(el('h2', { text: 'Code it: worked practice problems' }));
+      host.appendChild(el('p', { html: 'Do these in an editor or on LeetCode, in Java. <strong>Before coding</strong>, say out loud: the pattern, the invariant, why it is correct, and the complexity. Then code, then dry-run one example. Each one here comes with a solution to check yourself against.' }));
       t.practice.forEach(function (pr) {
-        sec.appendChild(el('h3', { html: pr.name + (pr.lc ? ' <span class="lc">' + pr.lc + '</span>' : '') }));
-        sec.appendChild(el('div', { html: pr.prompt }));
-        if (pr.hint) sec.appendChild(el('details', {}, [el('summary', { text: 'Hint (only after 10 minutes stuck)' }), el('div', { html: pr.hint })]));
-        if (pr.solution) sec.appendChild(el('details', {}, [el('summary', { text: 'Solution and why it works' }), el('div', { html: pr.solution })]));
+        host.appendChild(el('h3', { html: pr.name + (pr.lc ? ' <span class="lc">' + pr.lc + '</span>' : '') }));
+        host.appendChild(el('div', { html: pr.prompt }));
+        if (pr.hint) host.appendChild(el('details', {}, [el('summary', { text: 'Hint (only after 10 minutes stuck)' }), el('div', { html: pr.hint })]));
+        if (pr.solution) host.appendChild(el('details', {}, [el('summary', { text: 'Solution and why it works' }), el('div', { html: pr.solution })]));
       });
     }
 
     renderSteps();
     renderQuiz();
+    renderExtras();
     app.appendChild(el('p', { 'class': 'note reset' }, [el('a', { href: '#', text: 'Reset this lesson\'s local step progress', onclick: function (e) {
       e.preventDefault(); store.set('lesson:' + id, { kp: 0, quiz: null }); location.reload();
     } })]));
+  }
+
+  /* ---------- suggested problems (content/problems.js) ---------- */
+  function renderProblems(host, id) {
+    var box = el('div', { 'class': 'suggested' });
+    host.appendChild(box);
+    function draw(list) {
+      if (!list || !list.length) return;
+      box.appendChild(el('h2', { text: 'Suggested problems' }));
+      box.appendChild(el('p', { html: 'No solutions here on purpose: this is the volume that turns a pattern you have read into one you own. Roughly in order of difficulty. ' +
+        '<strong>Rule:</strong> 25 minutes stuck, then read an editorial, then redo it from scratch the next day.' }));
+      var ul = el('ul', { 'class': 'problems' });
+      list.forEach(function (p) {
+        var li = el('li', {}, [
+          el('a', { href: p.url, target: '_blank', rel: 'noopener', text: p.name }),
+          el('span', { 'class': 'lc', text: p.src + (p.diff ? ' · ' + p.diff : '') })
+        ]);
+        if (p.why) li.appendChild(el('span', { 'class': 'why', text: ' ' + p.why }));
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    }
+    if (C.problems) return draw(C.problems[id]);
+    var s = el('script', { src: ROOT + 'content/problems.js' });
+    s.onload = function () { draw((C.problems || {})[id]); };
+    document.head.appendChild(s);
   }
 
   /* ---------- review page: spaced, interleaved, closed book ---------- */
@@ -546,18 +604,18 @@
       ol.appendChild(el('li', { html: STATE.due.length
         ? '<a href="review.html"><strong>Review ' + STATE.due.length + ' due topic' + (STATE.due.length > 1 ? 's' : '') + '</strong></a> (' + STATE.due.map(function (d) { return d.id; }).join(', ') + ')'
         : 'No reviews due.' }));
+      if (STATE.ready.length) {
+        var li2 = el('li', { html: '<strong>Learn:</strong> read the next lesson and answer as you go. Suggested order: ' });
+        STATE.ready.slice(0, 3).forEach(function (x, i) { if (i) li2.appendChild(document.createTextNode(' · ')); li2.appendChild(topicLink(x)); });
+        li2.appendChild(el('span', { 'class': 'note', text: ' (an order, not a lock: any topic below is open)' }));
+        ol.appendChild(li2);
+      }
       if (STATE.diagnose.length) {
-        var li = el('li', { html: '<strong>Placement:</strong> take the placement quiz at the top of: ' });
+        var li = el('li', { html: '<strong>Optional:</strong> if you already know one of these, the placement quiz at the top of its lesson skips it: ' });
         STATE.diagnose.forEach(function (x, i) { if (i) li.appendChild(document.createTextNode(' · ')); li.appendChild(topicLink(x)); });
         ol.appendChild(li);
       }
-      if (STATE.ready.length) {
-        var li2 = el('li', { html: '<strong>Learn</strong> (your frontier): ' });
-        STATE.ready.forEach(function (x, i) { if (i) li2.appendChild(document.createTextNode(' · ')); li2.appendChild(topicLink(x)); });
-        ol.appendChild(li2);
-      }
       box.appendChild(ol);
-      if (STATE.unverifiedAbove) box.appendChild(el('p', { 'class': 'note', text: STATE.unverifiedAbove + ' more unverified topics unlock for placement as the ones below them are mastered.' }));
       dash.appendChild(box);
     }
     Object.keys(G.modules).forEach(function (m) {
